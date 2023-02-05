@@ -69,4 +69,4 @@ cargo install --path .
 
 ## Why
 
-I wanted to learn rust and had a (cargo-culted) shell script that performed this task for usage with [sketchybar](https://github.com/FelixKratz/SketchyBar).
+I wanted to learn rust and had a [(cargo-culted) shell script](https://github.com/johnallen3d/dotfiles/blob/16054c903bc8cc0ca939c279382ec6b15eb1bc7c/dot_config/sketchybar/plugins/executable_weather.sh#L1) that performed this task for usage with [sketchybar](https://github.com/FelixKratz/SketchyBar).
