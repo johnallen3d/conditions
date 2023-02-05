@@ -14,6 +14,22 @@ A command line tool for getting the weather conditions at the current location.
 }
 ```
 
+### SketchyBar
+
+Here's how I'm using this with SketchyBar.
+
+```bash
+#!/bin/bash
+
+conditions="$(conditions)"
+icon=$(echo "$conditions" | jq -r .icon)
+temp=$(echo "$conditions" | jq -r .temp)
+
+sketchybar -m \
+  --set weather_logo icon="${icon}" \
+  --set weather label="${temp}°F"
+```
+
 ## Tasks
 
 Run tasks from this directory via: `xc [task-name]`
