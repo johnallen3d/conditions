@@ -10,6 +10,8 @@ pub enum TimeOfDay {
 /// (via numeric code provided by weatherapi.com and time of day).
 ///
 /// ```
+/// use conditions::icons::*;
+///
 /// let time_of_day = TimeOfDay::Day;
 ///
 /// let icon = icon_for(time_of_day, 1006);
