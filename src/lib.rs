@@ -1,5 +1,9 @@
+use clap::Parser;
 use serde::{Deserialize, Serialize};
 
+use args::{Command, ConditionsArgs};
+
+mod args;
 pub mod conditions;
 pub mod icons;
 pub mod location;
@@ -13,6 +17,23 @@ struct Config {
 }
 
 pub fn run() {
+    let args = ConditionsArgs::parse();
+
+    match &args.command {
+        Command::SetToken(cmd) => set_weatherapi_token(&cmd.token),
+        Command::Current => current_conditions(),
+    }
+}
+
+fn set_weatherapi_token(token: &str) {
+    let config = Config {
+        weather_api_token: token.to_owned(),
+    };
+
+    confy::store(APP_NAME, CONFIG_NAME, config).unwrap();
+}
+
+fn current_conditions() {
     let config: Config = confy::load(APP_NAME, CONFIG_NAME).unwrap();
     let weatherapi_token = config.weather_api_token;
     let location = location::current().unwrap();
