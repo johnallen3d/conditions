@@ -2,8 +2,6 @@ use std::convert::From;
 
 use serde::{Deserialize, Serialize};
 
-use crate::location;
-
 static WEATHERAPI_URL: &str = "http://api.weatherapi.com/v1/current.json";
 
 /// PrasedConditions represented as JSON response
@@ -58,12 +56,8 @@ impl Conditions {
     }
 }
 
-pub fn current(
-    key: &str,
-    location: &location::Coordinates,
-) -> Result<Conditions, String> {
-    let q = location.to_string();
-    let query = vec![("key", key), ("q", &q)];
+pub fn current(key: &str, location: &str) -> Result<Conditions, String> {
+    let query = vec![("key", key), ("q", location)];
 
     match ureq::get(WEATHERAPI_URL)
         .query_pairs(query)
