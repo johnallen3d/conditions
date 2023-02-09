@@ -9,12 +9,28 @@ pub struct ConditionsArgs {
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
-    SetToken(SetTokenCommand),
+    /// Get the current weather conditions
     Current,
+    /// weatherapi.com token
+    Token(TokenCommand),
 }
 
 #[derive(Debug, Args)]
-pub struct SetTokenCommand {
+pub struct TokenCommand {
+    #[clap(subcommand)]
+    pub command: TokenSubcommand,
+}
+
+#[derive(Debug, Subcommand)]
+pub enum TokenSubcommand {
+    /// Store your token
+    Set(SetToken),
+    /// View stored token
+    View,
+}
+
+#[derive(Debug, Args)]
+pub struct SetToken {
     /// Your weatherapi.com token
     pub token: String,
 }
