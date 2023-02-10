@@ -1,13 +1,14 @@
 use clap::Parser;
 
 use args::*;
+use conditions::Conditions;
 use config::Config;
 
 mod args;
-pub mod conditions;
+mod conditions;
 mod config;
-pub mod icons;
-pub mod location;
+mod icons;
+mod location;
 
 pub fn run() {
     let args = ConditionsArgs::parse();
@@ -18,13 +19,15 @@ pub fn run() {
             LocationSubcommand::Set(location) => {
                 Config::set_location(&location.location);
             }
-            LocationSubcommand::View => view_location(),
+            LocationSubcommand::View => println!("{}", Config::load().location),
         },
         Command::Token(cmd) => match &cmd.command {
             TokenSubcommand::Set(token) => {
                 Config::set_weatherapi_token(&token.token)
             }
-            TokenSubcommand::View => view_weatherapi_token(),
+            TokenSubcommand::View => {
+                println!("{}", Config::load().weatherapi_token)
+            }
         },
     }
 }
@@ -41,7 +44,7 @@ fn current_conditions() {
     let weatherapi_token = config.weatherapi_token;
 
     let mut conditions =
-        conditions::current(&weatherapi_token, &location).unwrap();
+        Conditions::current(&weatherapi_token, &location).unwrap();
 
     let time_of_day = match conditions.is_day {
         true => icons::TimeOfDay::Day,
@@ -51,16 +54,4 @@ fn current_conditions() {
     conditions.set_icon(icons::icon_for(time_of_day, conditions.code));
 
     println!("{}", ureq::serde_json::to_string(&conditions).unwrap());
-}
-
-fn view_location() {
-    let config = Config::load();
-
-    println!("{}", config.location);
-}
-
-fn view_weatherapi_token() {
-    let config = Config::load();
-
-    println!("{}", config.weatherapi_token);
 }

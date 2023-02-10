@@ -54,18 +54,18 @@ impl Conditions {
     pub fn set_icon(&mut self, value: String) {
         self.icon = Some(value);
     }
-}
 
-pub fn current(key: &str, location: &str) -> Result<Conditions, String> {
-    let query = vec![("key", key), ("q", location)];
+    pub fn current(key: &str, location: &str) -> Result<Self, String> {
+        let query = vec![("key", key), ("q", location)];
 
-    match ureq::get(WEATHERAPI_URL)
-        .query_pairs(query)
-        .call()
-        .unwrap()
-        .into_json::<WeatherAPIResult>()
-    {
-        Ok(parsed) => Ok(Conditions::from(parsed)),
-        Err(error) => Err(format!("error retrieving conditions: {error}")),
+        match ureq::get(WEATHERAPI_URL)
+            .query_pairs(query)
+            .call()
+            .unwrap()
+            .into_json::<WeatherAPIResult>()
+        {
+            Ok(parsed) => Ok(Self::from(parsed)),
+            Err(error) => Err(format!("error retrieving conditions: {error}")),
+        }
     }
 }
