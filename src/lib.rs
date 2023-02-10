@@ -1,14 +1,14 @@
 use clap::Parser;
 
 use args::*;
-use conditions::Conditions;
 use config::Config;
+use weather::Conditions;
 
 mod args;
-mod conditions;
 mod config;
-mod icons;
+pub mod icons;
 mod location;
+mod weather;
 
 pub fn run() {
     let args = ConditionsArgs::parse();

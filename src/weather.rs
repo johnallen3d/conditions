@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 static WEATHERAPI_URL: &str = "http://api.weatherapi.com/v1/current.json";
 
-/// PrasedConditions represented as JSON response
+/// PrasedWeather represented as JSON response
 /// {
 ///   "current": {
 ///     "condition": {
@@ -51,10 +51,6 @@ impl From<WeatherAPIResult> for Conditions {
 }
 
 impl Conditions {
-    pub fn set_icon(&mut self, value: String) {
-        self.icon = Some(value);
-    }
-
     pub fn current(key: &str, location: &str) -> Result<Self, String> {
         let query = vec![("key", key), ("q", location)];
 
@@ -65,7 +61,11 @@ impl Conditions {
             .into_json::<WeatherAPIResult>()
         {
             Ok(parsed) => Ok(Self::from(parsed)),
-            Err(error) => Err(format!("error retrieving conditions: {error}")),
+            Err(error) => Err(format!("error retrieving weather: {error}")),
         }
+    }
+
+    pub fn set_icon(&mut self, value: String) {
+        self.icon = Some(value);
     }
 }
