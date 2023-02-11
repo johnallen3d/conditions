@@ -60,7 +60,7 @@ impl From<weather::Conditions> for Output {
 
         Self {
             temp: temp as i32,
-            icon: conditions.icon.unwrap(),
+            icon: conditions.icon.unwrap_or_default(),
         }
     }
 }
@@ -69,15 +69,15 @@ fn current_conditions() {
     let config = Config::load();
 
     let location = if config.location.is_empty() {
-        location::current().unwrap().to_string()
+        location::current().unwrap_or_default().to_string()
     } else {
         config.location
     };
 
     let weatherapi_token = config.weatherapi_token;
 
-    let mut conditions =
-        Conditions::current(&weatherapi_token, &location).unwrap();
+    let mut conditions = Conditions::current(&weatherapi_token, &location)
+        .expect("error retrieving weather conditions");
 
     let time_of_day = match conditions.is_day {
         true => icons::TimeOfDay::Day,
@@ -88,5 +88,8 @@ fn current_conditions() {
 
     let output = Output::from(conditions);
 
-    println!("{}", ureq::serde_json::to_string(&output).unwrap());
+    println!(
+        "{}",
+        ureq::serde_json::to_string(&output).expect("unexpected error")
+    );
 }

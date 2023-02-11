@@ -41,12 +41,8 @@ impl fmt::Display for Coordinates {
     }
 }
 
-pub fn current() -> Result<Coordinates, ParseError> {
-    let response = ureq::get("https://ipinfo.io/loc")
-        .call()
-        .unwrap()
-        .into_string()
-        .unwrap();
+pub fn current() -> Result<Coordinates, Box<dyn std::error::Error>> {
+    let response = ureq::get("https://ipinfo.io/loc").call()?.into_string()?;
 
-    Coordinates::from_str(&response)
+    Ok(Coordinates::from_str(&response)?)
 }
