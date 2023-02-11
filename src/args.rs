@@ -76,9 +76,22 @@ pub enum UnitSubcommand {
 #[derive(Debug, Args)]
 pub struct SetUnit {
     /// Temperature unit to return (c or f)
-    #[clap(
-        default_value = "f",
-        value_parser = clap::builder::PossibleValuesParser::new(["c", "f"]),
-    )]
-    pub unit: String,
+    // #[clap(default_value = "f", value_enum)]
+    #[clap(value_enum)]
+    pub unit: Unit,
+}
+
+#[derive(clap::ValueEnum, Clone, Debug)]
+pub enum Unit {
+    C,
+    F,
+}
+
+impl Unit {
+    pub fn as_char(&self) -> char {
+        match self {
+            Unit::C => 'c',
+            Unit::F => 'f',
+        }
+    }
 }

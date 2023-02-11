@@ -5,7 +5,7 @@ use args::*;
 use config::Config;
 use weather::Conditions;
 
-mod args;
+pub mod args;
 mod config;
 pub mod icons;
 mod location;
@@ -32,9 +32,7 @@ pub fn run() {
             }
         },
         Command::Unit(cmd) => match &cmd.command {
-            UnitSubcommand::Set(unit) => {
-                Config::set_unit(unit.unit.chars().next().unwrap())
-            }
+            UnitSubcommand::Set(unit) => Config::set_unit(&unit.unit),
             UnitSubcommand::View => {
                 println!("{}", Config::load().unit)
             }

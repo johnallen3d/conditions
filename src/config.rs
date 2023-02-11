@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::args::Unit;
+
 pub const APP_NAME: &str = "conditions";
 pub const CONFIG_NAME: &str = "config";
 
@@ -24,10 +26,11 @@ impl Config {
         print!("location stored successfully");
     }
 
-    pub fn set_unit(unit: char) {
+    pub fn set_unit(unit: &Unit) {
         let mut config = Self::load();
 
-        config.unit = unit;
+        config.unit = unit.as_char();
+
         config.store();
 
         print!("unit stored successfully");
