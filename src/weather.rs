@@ -54,18 +54,18 @@ impl From<WeatherAPIResult> for Conditions {
 }
 
 impl Conditions {
-    pub fn current(key: &str, location: &str) -> Result<Self, String> {
+    pub fn current(
+        key: &str,
+        location: &str,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
         let query = vec![("key", key), ("q", location)];
 
-        match ureq::get(WEATHERAPI_URL)
+        let parsed = ureq::get(WEATHERAPI_URL)
             .query_pairs(query)
-            .call()
-            .unwrap()
-            .into_json::<WeatherAPIResult>()
-        {
-            Ok(parsed) => Ok(Self::from(parsed)),
-            Err(error) => Err(format!("error retrieving weather: {error}")),
-        }
+            .call()?
+            .into_json::<WeatherAPIResult>()?;
+
+        Ok(Self::from(parsed))
     }
 
     pub fn set_icon(&mut self, value: String) {

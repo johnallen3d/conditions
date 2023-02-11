@@ -8,6 +8,7 @@ pub const APP_NAME: &str = "conditions";
 pub const CONFIG_NAME: &str = "config";
 
 #[derive(Deserialize, Serialize, Debug, Default)]
+#[serde(default)]
 pub struct Config {
     pub location: String,
     pub unit: char,
@@ -16,12 +17,12 @@ pub struct Config {
 
 impl Config {
     pub fn load() -> Self {
-        confy::load(APP_NAME, CONFIG_NAME).unwrap()
+        confy::load(APP_NAME, CONFIG_NAME).expect("error loading config")
     }
 
     pub fn path() {
-        let path =
-            confy::get_configuration_file_path(APP_NAME, CONFIG_NAME).unwrap();
+        let path = confy::get_configuration_file_path(APP_NAME, CONFIG_NAME)
+            .expect("error retrieving config path");
 
         println!("{}", path.display());
     }
@@ -59,7 +60,7 @@ impl Config {
     }
 
     pub fn store(&self) {
-        confy::store(APP_NAME, CONFIG_NAME, self).unwrap();
+        confy::store(APP_NAME, CONFIG_NAME, self).expect("error saving config");
     }
 }
 
