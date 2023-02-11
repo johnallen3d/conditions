@@ -1,3 +1,5 @@
+use std::fmt;
+
 use serde::{Deserialize, Serialize};
 
 use crate::args::Unit;
@@ -15,6 +17,17 @@ pub struct Config {
 impl Config {
     pub fn load() -> Self {
         confy::load(APP_NAME, CONFIG_NAME).unwrap()
+    }
+
+    pub fn path() {
+        let path =
+            confy::get_configuration_file_path(APP_NAME, CONFIG_NAME).unwrap();
+
+        println!("{}", path.display());
+    }
+
+    pub fn view() {
+        println!("{}", Self::load());
     }
 
     pub fn set_location(location: &str) {
@@ -47,5 +60,15 @@ impl Config {
 
     pub fn store(&self) {
         confy::store(APP_NAME, CONFIG_NAME, self).unwrap();
+    }
+}
+
+impl fmt::Display for Config {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            fmt,
+            "Stored Configuration\n  Location: {}\n  Unit: {}\n  Token: {}",
+            self.location, self.unit, self.weatherapi_token
+        )
     }
 }

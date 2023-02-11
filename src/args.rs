@@ -9,6 +9,8 @@ pub struct ConditionsArgs {
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
+    /// View configuration information
+    Config(ConfigCommand),
     /// Get the current weather conditions
     Current,
     /// Location conditions apply to
@@ -17,6 +19,20 @@ pub enum Command {
     Token(TokenCommand),
     /// Weather unit, celsius or fahrenheit
     Unit(UnitCommand),
+}
+
+#[derive(Debug, Args)]
+pub struct ConfigCommand {
+    #[clap(subcommand)]
+    pub command: ConfigSubcommand,
+}
+
+#[derive(Debug, Subcommand)]
+pub enum ConfigSubcommand {
+    /// Print path to configuration file
+    Path,
+    /// Print all stored configuration values
+    View,
 }
 
 #[derive(Debug, Args)]

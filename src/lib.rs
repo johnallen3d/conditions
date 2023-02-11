@@ -16,6 +16,10 @@ pub fn run() {
     let args = ConditionsArgs::parse();
 
     match &args.command {
+        Command::Config(cmd) => match &cmd.command {
+            ConfigSubcommand::Path => Config::path(),
+            ConfigSubcommand::View => Config::view(),
+        },
         Command::Current => current_conditions(),
         Command::Location(cmd) => match &cmd.command {
             LocationSubcommand::Set(location) => {
