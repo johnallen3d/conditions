@@ -91,9 +91,8 @@ pub enum UnitSubcommand {
 
 #[derive(Debug, Args)]
 pub struct SetUnit {
-    /// Temperature unit to return (c or f)
-    // #[clap(default_value = "f", value_enum)]
-    #[clap(value_enum)]
+    /// Temperature unit to return
+    #[clap(default_value = "f", value_enum)]
     pub unit: Unit,
 }
 
