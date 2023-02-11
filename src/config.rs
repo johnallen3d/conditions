@@ -6,6 +6,7 @@ pub const CONFIG_NAME: &str = "config";
 #[derive(Deserialize, Serialize, Debug, Default)]
 pub struct Config {
     pub location: String,
+    pub unit: char,
     pub weatherapi_token: String,
 }
 
@@ -21,6 +22,15 @@ impl Config {
         config.store();
 
         print!("location stored successfully");
+    }
+
+    pub fn set_unit(unit: char) {
+        let mut config = Self::load();
+
+        config.unit = unit;
+        config.store();
+
+        print!("unit stored successfully");
     }
 
     pub fn set_weatherapi_token(token: &str) {

@@ -1,4 +1,5 @@
 use clap::Parser;
+use serde::Serialize;
 
 use args::*;
 use config::Config;
@@ -8,6 +9,7 @@ mod args;
 mod config;
 pub mod icons;
 mod location;
+mod unit;
 mod weather;
 
 pub fn run() {
@@ -29,6 +31,35 @@ pub fn run() {
                 println!("{}", Config::load().weatherapi_token)
             }
         },
+        Command::Unit(cmd) => match &cmd.command {
+            UnitSubcommand::Set(unit) => {
+                Config::set_unit(unit.unit.chars().next().unwrap())
+            }
+            UnitSubcommand::View => {
+                println!("{}", Config::load().unit)
+            }
+        },
+    }
+}
+
+#[derive(Debug, Serialize)]
+struct Output {
+    temp: i32,
+    icon: String,
+}
+
+impl From<weather::Conditions> for Output {
+    fn from(conditions: weather::Conditions) -> Self {
+        let temp = if Config::load().unit == 'c' {
+            conditions.temp_c
+        } else {
+            conditions.temp_f
+        };
+
+        Self {
+            temp: temp as i32,
+            icon: conditions.icon.unwrap(),
+        }
     }
 }
 
@@ -53,5 +84,7 @@ fn current_conditions() {
 
     conditions.set_icon(icons::icon_for(time_of_day, conditions.code));
 
-    println!("{}", ureq::serde_json::to_string(&conditions).unwrap());
+    let output = Output::from(conditions);
+
+    println!("{}", ureq::serde_json::to_string(&output).unwrap());
 }

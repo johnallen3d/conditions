@@ -5,12 +5,10 @@ A command line tool for getting the weather conditions at the current location.
 ## Usage
 
 ```sh
-> conditions | jq
+> conditions current | jq
 {
-  "code": 1003,
   "temp": 57,
-  "is_day": false,
-  "icon": ""
+  "icon": ""
 }
 ```
 
@@ -21,7 +19,7 @@ Here's how I'm using this with SketchyBar.
 ```bash
 #!/bin/bash
 
-conditions="$(conditions)"
+conditions="$(conditions current)"
 icon=$(echo "$conditions" | jq -r .icon)
 temp=$(echo "$conditions" | jq -r .temp)
 
