@@ -1,3 +1,3 @@
 fn main() {
-    conditions::run();
+    conditions::run()?;
 }

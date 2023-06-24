@@ -1,8 +1,15 @@
 use std::fmt;
 
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
 use crate::args::Unit;
+
+#[derive(Error, Debug)]
+pub enum ParseConfigError {
+    #[error("failure to load configuration")]
+    Loading(#[from] confy::ConfyError),
+}
 
 pub const APP_NAME: &str = "conditions";
 pub const CONFIG_NAME: &str = "config";
@@ -16,8 +23,8 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn load() -> Self {
-        confy::load(APP_NAME, CONFIG_NAME).expect("error loading config")
+    pub fn load() -> Result<Self, ParseConfigError> {
+        confy::load(APP_NAME, CONFIG_NAME).map_err(ParseConfigError::Loading)
     }
 
     pub fn path() {
@@ -27,36 +34,43 @@ impl Config {
         println!("{}", path.display());
     }
 
-    pub fn view() {
-        println!("{}", Self::load());
+    pub fn view() -> Result<(), ParseConfigError> {
+        println!("{}", Self::load()?);
+
+        Ok(())
     }
 
-    pub fn set_location(location: &str) {
-        let mut config = Self::load();
+    pub fn set_location(location: &str) -> Result<(), ParseConfigError> {
+        let mut config = Self::load()?;
 
         config.location = location.to_owned();
         config.store();
 
         print!("location stored successfully");
+
+        Ok(())
     }
 
-    pub fn set_unit(unit: &Unit) {
-        let mut config = Self::load();
+    pub fn set_unit(unit: &Unit) -> Result<(), ParseConfigError> {
+        let mut config = Self::load()?;
 
         config.unit = unit.as_char();
-
         config.store();
 
         print!("unit stored successfully");
+
+        Ok(())
     }
 
-    pub fn set_weatherapi_token(token: &str) {
-        let mut config = Self::load();
+    pub fn set_weatherapi_token(token: &str) -> Result<(), ParseConfigError> {
+        let mut config = Self::load()?;
 
         config.weatherapi_token = token.to_owned();
         config.store();
 
         print!("weatherapi.com token stored successfully");
+
+        Ok(())
     }
 
     pub fn store(&self) {
