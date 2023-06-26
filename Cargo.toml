@@ -9,4 +9,4 @@ description = "Fetch basic weather conditions for current location"
 clap = { version = "4.1.11", features = ["derive"] }
 confy = "0.5.1"
 serde = { version = "1", features = ["derive"] }
-ureq = { version = "2.6.2", features = ["json"] }
+ureq = { version = "2.7.1", features = ["json"] }
