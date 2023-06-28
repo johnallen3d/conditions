@@ -66,12 +66,10 @@ impl fmt::Display for Coordinates {
     }
 }
 
-pub fn current(
-    client: &dyn HttpClient,
-) -> Result<Coordinates, ParseCoordinatesError> {
+pub fn current<T: HttpClient>(client: &T) -> Result<Coordinates, ParseCoordinatesError> {
     let response = client.get_location()?;
 
-    Ok(Coordinates::from_str(&response)?)
+    Coordinates::from_str(&response)
 }
 
 #[cfg(test)]
@@ -82,7 +80,7 @@ mod tests {
 
     impl HttpClient for MockClient {
         fn get_location(&self) -> Result<String, ParseCoordinatesError> {
-            Ok(COORDS.to_string()) // Mock response
+            Ok(COORDS.to_string())
         }
     }
 

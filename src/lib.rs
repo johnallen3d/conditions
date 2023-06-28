@@ -1,3 +1,5 @@
+use std::error::Error;
+
 use clap::Parser;
 use serde::Serialize;
 
@@ -17,13 +19,13 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
 
     match &args.command {
         Command::Config(cmd) => match &cmd.command {
-            ConfigSubcommand::Path => Config::path()?,
+            ConfigSubcommand::Path => Config::path(),
             ConfigSubcommand::View => Config::view()?,
         },
-        Command::Current => current_conditions(),
+        Command::Current => current_conditions()?,
         Command::Location(cmd) => match &cmd.command {
             LocationSubcommand::Set(location) => {
-                Config::set_location(&location.location);
+                let _ = Config::set_location(&location.location);
             }
             LocationSubcommand::View => {
                 println!("{}", Config::load()?.location)
@@ -31,14 +33,14 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
         },
         Command::Token(cmd) => match &cmd.command {
             TokenSubcommand::Set(token) => {
-                Config::set_weatherapi_token(&token.token)
+                Config::set_weatherapi_token(&token.token)?
             }
             TokenSubcommand::View => {
                 println!("{}", Config::load()?.weatherapi_token)
             }
         },
         Command::Unit(cmd) => match &cmd.command {
-            UnitSubcommand::Set(unit) => Config::set_unit(&unit.unit),
+            UnitSubcommand::Set(unit) => Config::set_unit(&unit.unit)?,
             UnitSubcommand::View => {
                 println!("{}", Config::load()?.unit)
             }
@@ -56,16 +58,15 @@ struct Output {
 
 impl From<weather::Conditions> for Output {
     fn from(conditions: weather::Conditions) -> Self {
-        let temp = if Config::load().unit == 'c' {
-            conditions.temp_c
-        } else {
-            conditions.temp_f
+        let temp = match Config::load() {
+            Ok(config) => {
+                match config.unit {
+                    'c' => conditions.temp_c,
+                    _ => conditions.temp_f,
+                }
+            }
+            Err(_) => conditions.temp_f,
         };
-
-        // let temp = match Config::load().unit {
-        //     'c' => temp.round() as i32,
-        //     _ => temp.round() as i32,
-        // };
 
         Self {
             temp: temp as i32,
@@ -74,8 +75,8 @@ impl From<weather::Conditions> for Output {
     }
 }
 
-fn current_conditions() {
-    let config = Config::load();
+fn current_conditions() -> Result<(), Box<dyn Error>> {
+    let config = Config::load()?;
 
     let location = if config.location.is_empty() {
         let client = crate::location::UreqClient;
@@ -102,6 +103,8 @@ fn current_conditions() {
         "{}",
         ureq::serde_json::to_string(&output).expect("unexpected error")
     );
+
+    Ok(())
 }
 
 #[cfg(test)]
@@ -110,6 +113,6 @@ mod tests {
 
     #[test]
     fn test_from() {
-        println!("{}", Config::load().unit);
+        println!("{}", Config::load().unwrap().unit);
     }
 }
