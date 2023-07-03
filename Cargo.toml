@@ -6,7 +6,7 @@ authors = ["John Allen <johnallen3d@threedogconsulting.com>"]
 description = "Fetch basic weather conditions for current location"
 
 [dependencies]
-clap = { version = "4.3.8", features = ["derive"] }
+clap = { version = "4.3.10", features = ["derive"] }
 confy = "0.5.1"
 serde = { version = "1", features = ["derive"] }
 ureq = { version = "2.7.1", features = ["json"] }
