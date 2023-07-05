@@ -44,13 +44,9 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             }
         },
         Command::Unit(cmd) => match &cmd.command {
-            UnitSubcommand::Set(unit) => Config::set_unit(&unit.unit)?,
+            UnitSubcommand::Set(unit) => Config::set_unit(unit.unit)?,
             UnitSubcommand::View => {
-                if let Some(unit) = Unit::from_char(Config::load()?.unit) {
-                    println!("unit stored as: {}", unit);
-                } else {
-                    println!("unit not set");
-                };
+                println!("unit stored as: {}", Config::load()?.unit)
             }
         },
     }
@@ -67,7 +63,7 @@ struct Output {
 impl From<weather::Conditions> for Output {
     fn from(conditions: weather::Conditions) -> Self {
         let temp = match Config::load() {
-            Ok(config) => match config.unit {
+            Ok(config) => match config.unit.as_char() {
                 'c' => conditions.temp_c,
                 _ => conditions.temp_f,
             },

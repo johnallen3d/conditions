@@ -1,6 +1,7 @@
 use std::fmt;
 
 use clap::{Args, Parser, Subcommand};
+use serde::{Deserialize, Deserializer, Serialize};
 
 #[derive(Debug, Parser)]
 #[clap(version, about)]
@@ -94,13 +95,14 @@ pub enum UnitSubcommand {
 #[derive(Debug, Args)]
 pub struct SetUnit {
     /// Temperature unit to return
-    #[clap(default_value = "f", value_enum)]
+    #[clap(value_enum)]
     pub unit: Unit,
 }
 
-#[derive(clap::ValueEnum, Clone, Debug)]
+#[derive(clap::ValueEnum, Clone, Copy, Debug, Default, Serialize)]
 pub enum Unit {
     C,
+    #[default]
     F,
 }
 
@@ -128,5 +130,18 @@ impl fmt::Display for Unit {
             Unit::F => "fahrenheit",
         };
         write!(f, "{}", text)
+    }
+}
+
+impl<'de> Deserialize<'de> for Unit {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?.to_lowercase();
+        match s.as_str() {
+            "c" => Ok(Unit::C),
+            "f" | _ => Ok(Unit::F),
+        }
     }
 }

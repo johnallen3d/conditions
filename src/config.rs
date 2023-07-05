@@ -18,7 +18,7 @@ pub const CONFIG_NAME: &str = "config";
 #[serde(default)]
 pub struct Config {
     pub location: String,
-    pub unit: char,
+    pub unit: Unit,
     pub weatherapi_token: Option<String>,
 }
 
@@ -51,10 +51,10 @@ impl Config {
         Ok(())
     }
 
-    pub fn set_unit(unit: &Unit) -> Result<(), ParseConfigError> {
+    pub fn set_unit(unit: Unit) -> Result<(), ParseConfigError> {
         let mut config = Self::load()?;
 
-        config.unit = unit.as_char();
+        config.unit = unit;
         config.store();
 
         print!("unit stored as: {}", unit);
