@@ -26,7 +26,7 @@ impl TimeOfDay {
     ///
     /// let time_of_day = TimeOfDay::Day;
     ///
-    /// let icon = icon_for(time_of_day, 1006);
+    /// let icon = time_of_day.icon(1006);
     ///
     /// assert_eq!(icon, " ".to_string());
     /// ```
@@ -150,21 +150,21 @@ lazy_static! {
 
 #[test]
 fn valid_code_for_day() {
-    let icon = icon_for(TimeOfDay::Day, 1006);
+    let icon = TimeOfDay::Day.icon(1006);
 
     assert_eq!(icon, " ".to_string());
 }
 
 #[test]
 fn valid_code_for_night() {
-    let icon = icon_for(TimeOfDay::Night, 1195);
+    let icon = TimeOfDay::Night.icon(1195);
 
     assert_eq!(icon, "".to_string());
 }
 
 #[test]
 fn invalid_code_for() {
-    let icon = icon_for(TimeOfDay::Night, 9999);
+    let icon = TimeOfDay::Night.icon(9999);
 
     assert_eq!(icon, "?".to_string());
 }
