@@ -4,6 +4,26 @@ use serde::Deserialize;
 
 static WEATHERAPI_URL: &str = "http://api.weatherapi.com/v1/current.json";
 
+use thiserror::Error;
+
+#[derive(Error, Debug, PartialEq)]
+pub enum FetchConditionsError {
+    #[error("unknown error fetching weather conditions")]
+    Unknown,
+}
+
+impl std::convert::From<ureq::Error> for FetchConditionsError {
+    fn from(_: ureq::Error) -> Self {
+        Self::Unknown
+    }
+}
+
+impl std::convert::From<std::io::Error> for FetchConditionsError {
+    fn from(_: std::io::Error) -> Self {
+        Self::Unknown
+    }
+}
+
 /// PrasedWeather represented as JSON response
 /// {
 ///   "current": {
@@ -57,7 +77,7 @@ impl Conditions {
     pub fn current(
         key: &str,
         location: &str,
-    ) -> Result<Self, Box<dyn std::error::Error>> {
+    ) -> Result<Self, FetchConditionsError> {
         let query = vec![("key", key), ("q", location)];
 
         let parsed = ureq::get(WEATHERAPI_URL)
