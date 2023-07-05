@@ -1,3 +1,5 @@
+use std::fmt;
+
 use clap::{Args, Parser, Subcommand};
 
 #[derive(Debug, Parser)]
@@ -103,10 +105,28 @@ pub enum Unit {
 }
 
 impl Unit {
+    pub fn from_char(unit: char) -> Option<Self> {
+        match unit {
+            'c' => Some(Self::C),
+            'f' => Some(Self::F),
+            _ => None,
+        }
+    }
+
     pub fn as_char(&self) -> char {
         match self {
             Unit::C => 'c',
             Unit::F => 'f',
         }
+    }
+}
+
+impl fmt::Display for Unit {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let text = match self {
+            Unit::C => "celsius",
+            Unit::F => "fahrenheit",
+        };
+        write!(f, "{}", text)
     }
 }

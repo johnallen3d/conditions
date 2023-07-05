@@ -19,7 +19,7 @@ pub const CONFIG_NAME: &str = "config";
 pub struct Config {
     pub location: String,
     pub unit: char,
-    pub weatherapi_token: String,
+    pub weatherapi_token: Option<String>,
 }
 
 impl Config {
@@ -57,7 +57,7 @@ impl Config {
         config.unit = unit.as_char();
         config.store();
 
-        print!("unit stored successfully");
+        print!("unit stored as: {}", unit);
 
         Ok(())
     }
@@ -65,7 +65,7 @@ impl Config {
     pub fn set_weatherapi_token(token: &str) -> Result<(), ParseConfigError> {
         let mut config = Self::load()?;
 
-        config.weatherapi_token = token.to_owned();
+        config.weatherapi_token = Some(token.to_owned());
         config.store();
 
         print!("weatherapi.com token stored successfully");
@@ -83,7 +83,9 @@ impl fmt::Display for Config {
         write!(
             fmt,
             "Stored Configuration\n  Location: {}\n  Unit: {}\n  Token: {}",
-            self.location, self.unit, self.weatherapi_token
+            self.location,
+            self.unit,
+            self.weatherapi_token.clone().unwrap_or_default()
         )
     }
 }

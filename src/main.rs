@@ -1,3 +1,8 @@
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    conditions::run()
+fn main() {
+    env_logger::init();
+
+    match conditions::run() {
+        Ok(_) => (),
+        Err(err) => log::error!("{}", err),
+    }
 }
