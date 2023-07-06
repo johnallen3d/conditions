@@ -1,8 +1,17 @@
 use std::fmt;
 
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
 use crate::args::Unit;
+
+#[derive(Error, Debug)]
+pub enum ParseConfigError {
+    #[error("failure to load configuration")]
+    Loading(#[from] confy::ConfyError),
+    #[error("configuration for {0} not found")]
+    Missing(String),
+}
 
 pub const APP_NAME: &str = "conditions";
 pub const CONFIG_NAME: &str = "config";
@@ -10,14 +19,14 @@ pub const CONFIG_NAME: &str = "config";
 #[derive(Deserialize, Serialize, Debug, Default)]
 #[serde(default)]
 pub struct Config {
-    pub location: String,
-    pub unit: char,
-    pub weatherapi_token: String,
+    pub location: Option<String>,
+    pub unit: Unit,
+    pub weatherapi_token: Option<String>,
 }
 
 impl Config {
-    pub fn load() -> Self {
-        confy::load(APP_NAME, CONFIG_NAME).expect("error loading config")
+    pub fn load() -> Result<Self, ParseConfigError> {
+        confy::load(APP_NAME, CONFIG_NAME).map_err(ParseConfigError::Loading)
     }
 
     pub fn path() {
@@ -27,36 +36,59 @@ impl Config {
         println!("{}", path.display());
     }
 
-    pub fn view() {
-        println!("{}", Self::load());
+    pub fn view() -> Result<(), ParseConfigError> {
+        println!("{}", Self::load()?);
+
+        Ok(())
     }
 
-    pub fn set_location(location: &str) {
-        let mut config = Self::load();
+    pub fn get_location(&self) -> Result<String, ParseConfigError> {
+        match &self.location {
+            Some(location) => Ok(location.clone()),
+            None => Err(ParseConfigError::Missing("location".to_owned())),
+        }
+    }
 
-        config.location = location.to_owned();
+    pub fn set_location(location: &str) -> Result<(), ParseConfigError> {
+        let mut config = Self::load()?;
+
+        config.location = Some(location.to_owned());
         config.store();
 
         print!("location stored successfully");
+
+        Ok(())
     }
 
-    pub fn set_unit(unit: &Unit) {
-        let mut config = Self::load();
+    pub fn set_unit(unit: Unit) -> Result<(), ParseConfigError> {
+        let mut config = Self::load()?;
 
-        config.unit = unit.as_char();
-
+        config.unit = unit;
         config.store();
 
-        print!("unit stored successfully");
+        print!("unit stored as: {}", unit);
+
+        Ok(())
     }
 
-    pub fn set_weatherapi_token(token: &str) {
-        let mut config = Self::load();
+    pub fn get_weatherapi_token(&self) -> Result<String, ParseConfigError> {
+        match &self.weatherapi_token {
+            Some(token) => Ok(token.clone()),
+            None => {
+                Err(ParseConfigError::Missing("weatherapi token".to_owned()))
+            }
+        }
+    }
 
-        config.weatherapi_token = token.to_owned();
+    pub fn set_weatherapi_token(token: &str) -> Result<(), ParseConfigError> {
+        let mut config = Self::load()?;
+
+        config.weatherapi_token = Some(token.to_owned());
         config.store();
 
         print!("weatherapi.com token stored successfully");
+
+        Ok(())
     }
 
     pub fn store(&self) {
@@ -69,7 +101,9 @@ impl fmt::Display for Config {
         write!(
             fmt,
             "Stored Configuration\n  Location: {}\n  Unit: {}\n  Token: {}",
-            self.location, self.unit, self.weatherapi_token
+            self.location.clone().unwrap_or_default(),
+            self.unit,
+            self.weatherapi_token.clone().unwrap_or_default()
         )
     }
 }
