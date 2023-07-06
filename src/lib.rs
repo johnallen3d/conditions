@@ -13,22 +13,20 @@ pub mod icons;
 mod location;
 mod weather;
 
-pub fn run() -> Result<(), Box<dyn Error>> {
+pub fn run() -> Result<String, Box<dyn Error>> {
     let args = ConditionsArgs::parse();
 
-    match &args.command {
+    let result = match &args.command {
         Command::Config(cmd) => match &cmd.command {
-            ConfigSubcommand::Path => Config::path(),
+            ConfigSubcommand::Path => Config::path()?,
             ConfigSubcommand::View => Config::view()?,
         },
         Command::Current => current_conditions()?,
         Command::Location(cmd) => match &cmd.command {
             LocationSubcommand::Set(location) => {
-                let _ = Config::set_location(&location.location);
+                Config::set_location(&location.location)?
             }
-            LocationSubcommand::View => {
-                Config::load()?.get_location()?;
-            }
+            LocationSubcommand::View => Config::load()?.get_location()?,
         },
         Command::Token(cmd) => match &cmd.command {
             TokenSubcommand::Set(token) => {
@@ -37,18 +35,18 @@ pub fn run() -> Result<(), Box<dyn Error>> {
             TokenSubcommand::View => {
                 let token = Config::load()?.get_weatherapi_token()?;
 
-                println!("token stored as: {}", token);
+                format!("token stored as: {}", token)
             }
         },
         Command::Unit(cmd) => match &cmd.command {
             UnitSubcommand::Set(unit) => Config::set_unit(unit.unit)?,
             UnitSubcommand::View => {
-                println!("unit stored as: {}", Config::load()?.unit)
+                format!("unit stored as: {}", Config::load()?.unit)
             }
         },
-    }
+    };
 
-    Ok(())
+    Ok(result)
 }
 
 #[derive(Debug, Serialize)]
@@ -74,7 +72,7 @@ impl From<weather::Conditions> for Output {
     }
 }
 
-fn current_conditions() -> Result<(), Box<dyn Error>> {
+fn current_conditions() -> Result<String, Box<dyn Error>> {
     let config = Config::load()?;
 
     let location = match config.location {
@@ -106,9 +104,7 @@ fn current_conditions() -> Result<(), Box<dyn Error>> {
 
     let output = Output::from(conditions);
 
-    println!("{}", ureq::serde_json::to_string(&output)?);
-
-    Ok(())
+    Ok(ureq::serde_json::to_string(&output)?)
 }
 
 #[cfg(test)]

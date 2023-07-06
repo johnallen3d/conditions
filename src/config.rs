@@ -29,17 +29,15 @@ impl Config {
         confy::load(APP_NAME, CONFIG_NAME).map_err(ParseConfigError::Loading)
     }
 
-    pub fn path() {
+    pub fn path() -> Result<String, ParseConfigError> {
         let path = confy::get_configuration_file_path(APP_NAME, CONFIG_NAME)
-            .expect("error retrieving config path");
+            .map_err(ParseConfigError::Loading)?;
 
-        println!("{}", path.display());
+        Ok(path.display().to_string())
     }
 
-    pub fn view() -> Result<(), ParseConfigError> {
-        println!("{}", Self::load()?);
-
-        Ok(())
+    pub fn view() -> Result<String, ParseConfigError> {
+        Ok(format!("{}", Self::load()?))
     }
 
     pub fn get_location(&self) -> Result<String, ParseConfigError> {
@@ -49,26 +47,22 @@ impl Config {
         }
     }
 
-    pub fn set_location(location: &str) -> Result<(), ParseConfigError> {
+    pub fn set_location(location: &str) -> Result<String, ParseConfigError> {
         let mut config = Self::load()?;
 
         config.location = Some(location.to_owned());
         config.store();
 
-        print!("location stored successfully");
-
-        Ok(())
+        Ok("location stored successfully".to_string())
     }
 
-    pub fn set_unit(unit: Unit) -> Result<(), ParseConfigError> {
+    pub fn set_unit(unit: Unit) -> Result<String, ParseConfigError> {
         let mut config = Self::load()?;
 
         config.unit = unit;
         config.store();
 
-        print!("unit stored as: {}", unit);
-
-        Ok(())
+        Ok(format!("unit stored as: {}", unit))
     }
 
     pub fn get_weatherapi_token(&self) -> Result<String, ParseConfigError> {
@@ -80,15 +74,15 @@ impl Config {
         }
     }
 
-    pub fn set_weatherapi_token(token: &str) -> Result<(), ParseConfigError> {
+    pub fn set_weatherapi_token(
+        token: &str,
+    ) -> Result<String, ParseConfigError> {
         let mut config = Self::load()?;
 
         config.weatherapi_token = Some(token.to_owned());
         config.store();
 
-        print!("weatherapi.com token stored successfully");
-
-        Ok(())
+        Ok("weatherapi.com token stored successfully".to_owned())
     }
 
     pub fn store(&self) {
