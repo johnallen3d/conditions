@@ -17,7 +17,7 @@ pub const CONFIG_NAME: &str = "config";
 #[derive(Deserialize, Serialize, Debug, Default)]
 #[serde(default)]
 pub struct Config {
-    pub location: String,
+    pub location: Option<String>,
     pub unit: Unit,
     pub weatherapi_token: Option<String>,
 }
@@ -43,7 +43,7 @@ impl Config {
     pub fn set_location(location: &str) -> Result<(), ParseConfigError> {
         let mut config = Self::load()?;
 
-        config.location = location.to_owned();
+        config.location = Some(location.to_owned());
         config.store();
 
         print!("location stored successfully");
@@ -83,7 +83,7 @@ impl fmt::Display for Config {
         write!(
             fmt,
             "Stored Configuration\n  Location: {}\n  Unit: {}\n  Token: {}",
-            self.location,
+            self.location.clone().unwrap_or_default(),
             self.unit,
             self.weatherapi_token.clone().unwrap_or_default()
         )

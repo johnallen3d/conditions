@@ -11,7 +11,6 @@ pub mod args;
 mod config;
 pub mod icons;
 mod location;
-mod unit;
 mod weather;
 
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
@@ -28,7 +27,10 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
                 let _ = Config::set_location(&location.location);
             }
             LocationSubcommand::View => {
-                println!("{}", Config::load()?.location)
+                match Config::load()?.location {
+                    Some(location) => println!("{}", location),
+                    None => println!("location not set"),
+                };
             }
         },
         Command::Token(cmd) => match &cmd.command {
@@ -80,11 +82,21 @@ impl From<weather::Conditions> for Output {
 fn current_conditions() -> Result<(), Box<dyn Error>> {
     let config = Config::load()?;
 
-    let location = if config.location.is_empty() {
-        let client = crate::location::UreqClient;
-        location::current(&client)?.to_string()
-    } else {
-        config.location
+    let location = match config.location {
+        Some(location) => location,
+        None => {
+            eprintln!(
+                "location not set, trying to infer via: {}",
+                location::LOCATION_URL,
+            );
+
+            let client = crate::location::UreqClient;
+            let inferred = location::current(&client)?.to_string();
+
+            eprintln!("inferred location: {}", inferred);
+
+            inferred
+        }
     };
 
     let weatherapi_token = match config.weatherapi_token {

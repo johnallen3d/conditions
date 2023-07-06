@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 use thiserror::Error;
 
-const LOCATION_URL: &str = "https://ipinfo.io/loc";
+pub const LOCATION_URL: &str = "https://ipinfo.io/loc";
 
 #[derive(Error, Debug, PartialEq)]
 pub enum ParseCoordinatesError {
@@ -66,7 +66,9 @@ impl fmt::Display for Coordinates {
     }
 }
 
-pub fn current<T: HttpClient>(client: &T) -> Result<Coordinates, ParseCoordinatesError> {
+pub fn current<T: HttpClient>(
+    client: &T,
+) -> Result<Coordinates, ParseCoordinatesError> {
     let response = client.get_location()?;
 
     Coordinates::from_str(&response)

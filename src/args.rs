@@ -141,7 +141,7 @@ impl<'de> Deserialize<'de> for Unit {
         let s = String::deserialize(deserializer)?.to_lowercase();
         match s.as_str() {
             "c" => Ok(Unit::C),
-            "f" | _ => Ok(Unit::F),
+            _ => Ok(Unit::F),
         }
     }
 }
