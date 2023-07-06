@@ -9,6 +9,8 @@ use crate::args::Unit;
 pub enum ParseConfigError {
     #[error("failure to load configuration")]
     Loading(#[from] confy::ConfyError),
+    #[error("configuration for {0} not found")]
+    Missing(String),
 }
 
 pub const APP_NAME: &str = "conditions";
@@ -40,6 +42,13 @@ impl Config {
         Ok(())
     }
 
+    pub fn get_location(&self) -> Result<String, ParseConfigError> {
+        match &self.location {
+            Some(location) => Ok(location.clone()),
+            None => Err(ParseConfigError::Missing("location".to_owned())),
+        }
+    }
+
     pub fn set_location(location: &str) -> Result<(), ParseConfigError> {
         let mut config = Self::load()?;
 
@@ -60,6 +69,15 @@ impl Config {
         print!("unit stored as: {}", unit);
 
         Ok(())
+    }
+
+    pub fn get_weatherapi_token(&self) -> Result<String, ParseConfigError> {
+        match &self.weatherapi_token {
+            Some(token) => Ok(token.clone()),
+            None => {
+                Err(ParseConfigError::Missing("weatherapi token".to_owned()))
+            }
+        }
     }
 
     pub fn set_weatherapi_token(token: &str) -> Result<(), ParseConfigError> {

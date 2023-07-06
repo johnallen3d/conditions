@@ -13,7 +13,7 @@ pub mod icons;
 mod location;
 mod weather;
 
-pub fn run() -> Result<(), Box<dyn std::error::Error>> {
+pub fn run() -> Result<(), Box<dyn Error>> {
     let args = ConditionsArgs::parse();
 
     match &args.command {
@@ -27,10 +27,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
                 let _ = Config::set_location(&location.location);
             }
             LocationSubcommand::View => {
-                match Config::load()?.location {
-                    Some(location) => println!("{}", location),
-                    None => println!("location not set"),
-                };
+                Config::load()?.get_location()?;
             }
         },
         Command::Token(cmd) => match &cmd.command {
@@ -38,11 +35,9 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
                 Config::set_weatherapi_token(&token.token)?
             }
             TokenSubcommand::View => {
-                if let Some(token) = Config::load()?.weatherapi_token {
-                    println!("token stored as {}", token);
-                } else {
-                    println!("token not set");
-                };
+                let token = Config::load()?.get_weatherapi_token()?;
+
+                println!("token stored as: {}", token);
             }
         },
         Command::Unit(cmd) => match &cmd.command {

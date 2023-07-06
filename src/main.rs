@@ -3,6 +3,11 @@ fn main() {
 
     match conditions::run() {
         Ok(_) => (),
-        Err(err) => log::error!("{}", err),
+        Err(err) => {
+            // for user
+            eprintln!("{}", err);
+            // for development
+            log::error!("{:?}", err);
+        }
     }
 }
