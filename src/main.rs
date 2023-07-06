@@ -2,7 +2,7 @@ fn main() {
     env_logger::init();
 
     match conditions::run() {
-        Ok(_) => (),
+        Ok(result) => println!("{}", result),
         Err(err) => {
             // for user
             eprintln!("{}", err);
