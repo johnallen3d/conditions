@@ -12,5 +12,5 @@ env_logger = "0.10.0"
 lazy_static = "1.4.0"
 log = "0.4.19"
 serde = { version = "1", features = ["derive"] }
-thiserror = "1.0.40"
+thiserror = "1.0.43"
 ureq = { version = "2.7.1", features = ["json"] }
