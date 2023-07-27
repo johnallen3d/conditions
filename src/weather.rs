@@ -74,10 +74,7 @@ impl From<WeatherAPIResult> for Conditions {
 }
 
 impl Conditions {
-    pub fn current(
-        key: &str,
-        location: &str,
-    ) -> Result<Self, FetchConditionsError> {
+    pub fn current(key: &str, location: &str) -> eyre::Result<Self> {
         let query = vec![("key", key), ("q", location)];
 
         let parsed = ureq::get(WEATHERAPI_URL)
