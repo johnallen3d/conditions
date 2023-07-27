@@ -1,6 +1,7 @@
 use std::fmt;
 use std::str::FromStr;
 
+use eyre::WrapErr;
 use thiserror::Error;
 
 pub const LOCATION_URL: &str = "https://ipinfo.io/loc";
@@ -12,16 +13,19 @@ pub enum ParseCoordinatesError {
 }
 
 pub trait HttpClient {
-    fn get_location(&self) -> Result<String, ParseCoordinatesError>;
+    fn get_location(&self) -> eyre::Result<String>;
 }
 
 pub struct UreqClient;
 
 impl HttpClient for UreqClient {
-    fn get_location(&self) -> Result<String, ParseCoordinatesError> {
+    fn get_location(&self) -> eyre::Result<String> {
         let location = match ureq::get(LOCATION_URL).call() {
             Ok(response) => response.into_string().unwrap_or_default(),
-            Err(_) => return Err(ParseCoordinatesError::InvalidFormat),
+            Err(_) => {
+                return Err(ParseCoordinatesError::InvalidFormat)
+                    .wrap_err("error getting location")
+            }
         };
 
         Ok(location)
@@ -66,12 +70,10 @@ impl fmt::Display for Coordinates {
     }
 }
 
-pub fn current<T: HttpClient>(
-    client: &T,
-) -> Result<Coordinates, ParseCoordinatesError> {
+pub fn current<T: HttpClient>(client: &T) -> eyre::Result<Coordinates> {
     let response = client.get_location()?;
 
-    Coordinates::from_str(&response)
+    Coordinates::from_str(&response).wrap_err("error parsing coordinates")
 }
 
 #[cfg(test)]
@@ -81,7 +83,7 @@ mod tests {
     struct MockClient;
 
     impl HttpClient for MockClient {
-        fn get_location(&self) -> Result<String, ParseCoordinatesError> {
+        fn get_location(&self) -> eyre::Result<String> {
             Ok(COORDS.to_string())
         }
     }

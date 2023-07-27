@@ -1,6 +1,5 @@
-use std::error::Error;
-
 use clap::Parser;
+use eyre::eyre;
 use serde::Serialize;
 
 use args::*;
@@ -13,7 +12,7 @@ pub mod icons;
 mod location;
 mod weather;
 
-pub fn run() -> Result<String, Box<dyn Error>> {
+pub fn run() -> eyre::Result<String> {
     let args = ConditionsArgs::parse();
 
     let result = match &args.command {
@@ -72,7 +71,7 @@ impl From<weather::Conditions> for Output {
     }
 }
 
-fn current_conditions() -> Result<String, Box<dyn Error>> {
+fn current_conditions() -> eyre::Result<String> {
     let config = Config::load()?;
 
     let location = match config.location {
@@ -94,7 +93,7 @@ fn current_conditions() -> Result<String, Box<dyn Error>> {
 
     let weatherapi_token = match config.weatherapi_token {
         Some(token) => token,
-        None => return Err("weatherapi token not set".into()),
+        None => return Err(eyre!("weatherapi token not set")),
     };
 
     let mut conditions = Conditions::current(&weatherapi_token, &location)?;

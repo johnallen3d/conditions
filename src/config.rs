@@ -1,5 +1,6 @@
 use std::fmt;
 
+use eyre::WrapErr;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -25,29 +26,32 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn load() -> Result<Self, ParseConfigError> {
-        confy::load(APP_NAME, CONFIG_NAME).map_err(ParseConfigError::Loading)
+    pub fn load() -> eyre::Result<Self> {
+        confy::load(APP_NAME, CONFIG_NAME)
+            .map_err(ParseConfigError::Loading)
+            .wrap_err("error loading config")
     }
 
-    pub fn path() -> Result<String, ParseConfigError> {
+    pub fn path() -> eyre::Result<String> {
         let path = confy::get_configuration_file_path(APP_NAME, CONFIG_NAME)
             .map_err(ParseConfigError::Loading)?;
 
         Ok(path.display().to_string())
     }
 
-    pub fn view() -> Result<String, ParseConfigError> {
+    pub fn view() -> eyre::Result<String> {
         Ok(format!("{}", Self::load()?))
     }
 
-    pub fn get_location(&self) -> Result<String, ParseConfigError> {
+    pub fn get_location(&self) -> eyre::Result<String> {
         match &self.location {
             Some(location) => Ok(location.clone()),
-            None => Err(ParseConfigError::Missing("location".to_owned())),
+            None => Err(ParseConfigError::Missing("location".to_owned()))
+                .wrap_err("error getting location"),
         }
     }
 
-    pub fn set_location(location: &str) -> Result<String, ParseConfigError> {
+    pub fn set_location(location: &str) -> eyre::Result<String> {
         let mut config = Self::load()?;
 
         config.location = Some(location.to_owned());
@@ -56,7 +60,7 @@ impl Config {
         Ok("location stored successfully".to_string())
     }
 
-    pub fn set_unit(unit: Unit) -> Result<String, ParseConfigError> {
+    pub fn set_unit(unit: Unit) -> eyre::Result<String> {
         let mut config = Self::load()?;
 
         config.unit = unit;
@@ -65,18 +69,17 @@ impl Config {
         Ok(format!("unit stored as: {}", unit))
     }
 
-    pub fn get_weatherapi_token(&self) -> Result<String, ParseConfigError> {
+    pub fn get_weatherapi_token(&self) -> eyre::Result<String> {
         match &self.weatherapi_token {
             Some(token) => Ok(token.clone()),
             None => {
                 Err(ParseConfigError::Missing("weatherapi token".to_owned()))
+                    .wrap_err("error getting api token")
             }
         }
     }
 
-    pub fn set_weatherapi_token(
-        token: &str,
-    ) -> Result<String, ParseConfigError> {
+    pub fn set_weatherapi_token(token: &str) -> eyre::Result<String> {
         let mut config = Self::load()?;
 
         config.weatherapi_token = Some(token.to_owned());
