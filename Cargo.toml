@@ -13,5 +13,5 @@ eyre = "0.6.8"
 lazy_static = "1.4.0"
 log = "0.4.20"
 serde = { version = "1", features = ["derive"] }
-thiserror = "1.0.44"
+thiserror = "1.0.47"
 ureq = { version = "2.7.1", features = ["json"] }
