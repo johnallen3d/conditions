@@ -18,8 +18,8 @@ pub enum Command {
     Current,
     /// Location conditions apply to
     Location(LocationCommand),
-    /// weatherapi.com token
-    Token(TokenCommand),
+    /// weatherapi.com api-key
+    WeatherApiKey(WeatherApiKeyCommand),
     /// Weather unit, celsius or fahrenheit
     Unit(UnitCommand),
 }
@@ -39,23 +39,23 @@ pub enum ConfigSubcommand {
 }
 
 #[derive(Debug, Args)]
-pub struct TokenCommand {
+pub struct WeatherApiKeyCommand {
     #[clap(subcommand)]
-    pub command: TokenSubcommand,
+    pub command: WeatherApiKeySubcommand,
 }
 
 #[derive(Debug, Subcommand)]
-pub enum TokenSubcommand {
-    /// Store your token
-    Set(SetToken),
-    /// View stored token
+pub enum WeatherApiKeySubcommand {
+    /// Store your weatherapi.com api-key
+    Set(SetApiKey),
+    /// View stored weatherapi.com api-key
     View,
 }
 
 #[derive(Debug, Args)]
-pub struct SetToken {
-    /// Your weatherapi.com token
-    pub token: String,
+pub struct SetApiKey {
+    /// Your weatherapi.com key
+    pub key: String,
 }
 
 #[derive(Debug, Args)]
@@ -74,8 +74,8 @@ pub enum LocationSubcommand {
 
 #[derive(Debug, Args)]
 pub struct SetLocation {
-    /// Location to retrieve weather for ("lat,long" or "city,state")
-    pub location: String,
+    /// Postal to retrieve weather for
+    pub postal_code: String,
 }
 
 #[derive(Debug, Args)]

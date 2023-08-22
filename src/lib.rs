@@ -1,12 +1,10 @@
 use clap::Parser;
-use eyre::eyre;
-use serde::Serialize;
 
 use args::*;
 use config::Config;
-use weather::Conditions;
 
 pub mod args;
+mod conditions;
 mod config;
 pub mod icons;
 mod location;
@@ -20,18 +18,23 @@ pub fn run() -> eyre::Result<String> {
             ConfigSubcommand::Path => Config::path()?,
             ConfigSubcommand::View => Config::view()?,
         },
-        Command::Current => current_conditions()?,
+        Command::Current => {
+            conditions::Conditions::new(Config::load()?)?.fetch()?
+        }
         Command::Location(cmd) => match &cmd.command {
-            LocationSubcommand::Set(location) => {
-                Config::set_location(&location.location)?
+            LocationSubcommand::Set(input) => {
+                Config::set_location(&input.postal_code)?
             }
-            LocationSubcommand::View => Config::load()?.get_location()?,
+            LocationSubcommand::View => Config::load()?
+                .get_location()?
+                .unwrap_or_default()
+                .to_string(),
         },
-        Command::Token(cmd) => match &cmd.command {
-            TokenSubcommand::Set(token) => {
-                Config::set_weatherapi_token(&token.token)?
+        Command::WeatherApiKey(cmd) => match &cmd.command {
+            WeatherApiKeySubcommand::Set(input) => {
+                Config::set_weatherapi_token(&input.key)?
             }
-            TokenSubcommand::View => {
+            WeatherApiKeySubcommand::View => {
                 let token = Config::load()?.get_weatherapi_token()?;
 
                 format!("token stored as: {}", token)
@@ -46,64 +49,6 @@ pub fn run() -> eyre::Result<String> {
     };
 
     Ok(result)
-}
-
-#[derive(Debug, Serialize)]
-struct Output {
-    temp: i32,
-    icon: String,
-}
-
-impl From<weather::Conditions> for Output {
-    fn from(conditions: weather::Conditions) -> Self {
-        let temp = match Config::load() {
-            Ok(config) => match config.unit.as_char() {
-                'c' => conditions.temp_c,
-                _ => conditions.temp_f,
-            },
-            Err(_) => conditions.temp_f,
-        };
-
-        Self {
-            temp: temp as i32,
-            icon: conditions.icon.unwrap_or_default(),
-        }
-    }
-}
-
-fn current_conditions() -> eyre::Result<String> {
-    let config = Config::load()?;
-
-    let location = match config.location {
-        Some(location) => location,
-        None => {
-            eprintln!(
-                "location not set, trying to infer via: {}",
-                location::LOCATION_URL,
-            );
-
-            let client = crate::location::UreqClient;
-            let inferred = location::current(&client)?.to_string();
-
-            eprintln!("inferred location: {}", inferred);
-
-            inferred
-        }
-    };
-
-    let weatherapi_token = match config.weatherapi_token {
-        Some(token) => token,
-        None => return Err(eyre!("weatherapi token not set")),
-    };
-
-    let mut conditions = Conditions::current(&weatherapi_token, &location)?;
-    let time_of_day = icons::TimeOfDay::from(conditions.is_day);
-
-    conditions.set_icon(time_of_day.icon(conditions.code));
-
-    let output = Output::from(conditions);
-
-    Ok(ureq::serde_json::to_string(&output)?)
 }
 
 #[cfg(test)]

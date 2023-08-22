@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::args::Unit;
+use crate::location::{self, Location};
 
 #[derive(Error, Debug)]
 pub enum ParseConfigError {
@@ -20,7 +21,8 @@ pub const CONFIG_NAME: &str = "config";
 #[derive(Deserialize, Serialize, Debug, Default)]
 #[serde(default)]
 pub struct Config {
-    pub location: Option<String>,
+    #[serde(flatten)]
+    pub location: Option<crate::location::Location>,
     pub unit: Unit,
     pub weatherapi_token: Option<String>,
 }
@@ -43,19 +45,20 @@ impl Config {
         Ok(format!("{}", Self::load()?))
     }
 
-    pub fn get_location(&self) -> eyre::Result<String> {
+    pub fn get_location(&self) -> eyre::Result<Option<Location>> {
         match &self.location {
-            Some(location) => Ok(location.clone()),
+            Some(location) => Ok(Some(location.clone())),
             None => Err(ParseConfigError::Missing("location".to_owned()))
                 .wrap_err("error getting location"),
         }
     }
 
-    pub fn set_location(location: &str) -> eyre::Result<String> {
+    pub fn set_location(postal_code: &str) -> eyre::Result<String> {
         let mut config = Self::load()?;
+        let location = location::get(Some(postal_code))?;
 
-        config.location = Some(location.to_owned());
-        config.store();
+        config.location = Some(location);
+        config.store()?;
 
         Ok("location stored successfully".to_string())
     }
@@ -64,7 +67,7 @@ impl Config {
         let mut config = Self::load()?;
 
         config.unit = unit;
-        config.store();
+        config.store()?;
 
         Ok(format!("unit stored as: {}", unit))
     }
@@ -83,22 +86,27 @@ impl Config {
         let mut config = Self::load()?;
 
         config.weatherapi_token = Some(token.to_owned());
-        config.store();
+        config.store()?;
 
         Ok("weatherapi.com token stored successfully".to_owned())
     }
 
-    pub fn store(&self) {
-        confy::store(APP_NAME, CONFIG_NAME, self).expect("error saving config");
+    pub fn store(&self) -> eyre::Result<()> {
+        println!("{:?}", self);
+        confy::store(APP_NAME, CONFIG_NAME, self)
+            .wrap_err("error saving config")
     }
 }
 
 impl fmt::Display for Config {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        let location = self.location.clone().unwrap_or_default();
+
         write!(
             fmt,
-            "Stored Configuration\n  Location: {}\n  Unit: {}\n  Token: {}",
-            self.location.clone().unwrap_or_default(),
+            "Stored Configuration\n  Coordinates: {}\n  Postal Code: {}\n  Unit: {}\n  Weather API Token: {}",
+            location.loc.clone(),
+            location.postal_code.clone(),
             self.unit,
             self.weatherapi_token.clone().unwrap_or_default()
         )

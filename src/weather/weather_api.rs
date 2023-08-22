@@ -1,10 +1,39 @@
 use std::convert::From;
 
 use serde::Deserialize;
+use thiserror::Error;
+
+use super::{CurrentConditions, WeatherProvider};
 
 static WEATHERAPI_URL: &str = "http://api.weatherapi.com/v1/current.json";
 
-use thiserror::Error;
+pub struct Client {
+    key: String,
+    location: String,
+}
+
+impl Client {
+    pub fn new(key: String, latitude: String, longitude: String) -> Self {
+        let location = format!("{},{}", latitude, longitude);
+
+        Self { key, location }
+    }
+}
+
+impl WeatherProvider for Client {
+    fn current(&self) -> eyre::Result<CurrentConditions> {
+        let parsed = ureq::get(WEATHERAPI_URL)
+            .query_pairs(self.query_pairs())
+            .call()?
+            .into_json::<WeatherAPIResult>()?;
+
+        Ok(CurrentConditions::from(parsed))
+    }
+
+    fn query_pairs(&self) -> Vec<(&str, &str)> {
+        vec![("key", self.key.as_str()), ("q", self.location.as_str())]
+    }
+}
 
 #[derive(Error, Debug, PartialEq)]
 pub enum FetchConditionsError {
@@ -52,16 +81,7 @@ struct WeatherAPIResultCondition {
     code: i32,
 }
 
-#[derive(Debug, Default)]
-pub struct Conditions {
-    pub code: i32,
-    pub temp_c: f32,
-    pub temp_f: f32,
-    pub is_day: bool,
-    pub icon: Option<String>,
-}
-
-impl From<WeatherAPIResult> for Conditions {
+impl From<WeatherAPIResult> for CurrentConditions {
     fn from(result: WeatherAPIResult) -> Self {
         Self {
             code: result.current.condition.code,
@@ -70,22 +90,5 @@ impl From<WeatherAPIResult> for Conditions {
             is_day: result.current.is_day == 1,
             icon: None,
         }
-    }
-}
-
-impl Conditions {
-    pub fn current(key: &str, location: &str) -> eyre::Result<Self> {
-        let query = vec![("key", key), ("q", location)];
-
-        let parsed = ureq::get(WEATHERAPI_URL)
-            .query_pairs(query)
-            .call()?
-            .into_json::<WeatherAPIResult>()?;
-
-        Ok(Self::from(parsed))
-    }
-
-    pub fn set_icon(&mut self, value: String) {
-        self.icon = Some(value);
     }
 }
