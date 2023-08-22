@@ -18,30 +18,28 @@ impl From<bool> for TimeOfDay {
 }
 
 impl TimeOfDay {
-    /// Provides a unicode character (icon) representing the weather condition
-    /// (via numeric code provided by weatherapi.com and time of day).
-    ///
-    /// ```
-    /// use conditions::icons::*;
-    ///
-    /// let time_of_day = TimeOfDay::Day;
-    ///
-    /// let icon = time_of_day.icon(1006);
-    ///
-    /// assert_eq!(icon, " ".to_string());
-    /// ```
-    pub fn icon(&self, code: i32) -> String {
-        match self {
-            TimeOfDay::Day => DAY_ICONS.get(&code).unwrap_or(&"?").to_string(),
-            TimeOfDay::Night => {
-                NIGHT_ICONS.get(&code).unwrap_or(&"?").to_string()
-            }
-        }
+    pub fn icon(
+        &self,
+        provider: crate::weather::Provider,
+        code: i32,
+    ) -> String {
+        let icons: &HashMap<i32, &'static str> = match provider {
+            crate::weather::Provider::WeatherAPI(_) => match self {
+                TimeOfDay::Day => &WEATHERAPI_DAY_ICONS,
+                TimeOfDay::Night => &WEATHERAPI_NIGHT_ICONS,
+            },
+            crate::weather::Provider::OpenMeteo => match self {
+                TimeOfDay::Day => &OPEN_METEO_DAY_ICONS,
+                TimeOfDay::Night => &OPEN_METEO_NIGHT_ICONS,
+            },
+        };
+
+        icons.get(&code).unwrap_or(&"?").to_string()
     }
 }
 
 lazy_static! {
-    static ref DAY_ICONS: HashMap<i32, &'static str> = {
+    static ref WEATHERAPI_DAY_ICONS: HashMap<i32, &'static str> = {
         let mut m = HashMap::new();
         m.insert(1000, " "); // Clear/113
         m.insert(1003, " "); // Partly cloudy/116
@@ -94,7 +92,7 @@ lazy_static! {
         m
     };
 
-    static ref NIGHT_ICONS: HashMap<i32, &'static str> = {
+    static ref WEATHERAPI_NIGHT_ICONS: HashMap<i32, &'static str> = {
         let mut m = HashMap::new();
         m.insert(1000, ""); // Clear/113
         m.insert(1003, ""); // Partly cloudy/116
@@ -148,23 +146,96 @@ lazy_static! {
     };
 }
 
+lazy_static! {
+    static ref OPEN_METEO_DAY_ICONS: HashMap<i32, &'static str> = {
+        let mut m = HashMap::new();
+        m.insert(0, " "); // Clear sky
+        m.insert(1, " ");
+        m.insert(2, " ");
+        m.insert(3, " "); // Mainly clear, partly cloudy, and overcast
+        m.insert(45, " ");
+        m.insert(48, " "); // Fog
+        m.insert(51, " ");
+        m.insert(53, " ");
+        m.insert(55, " "); // Drizzle: Light, moderate, and dense intensity
+        m.insert(56, " ");
+        m.insert(57, " "); // Freezing Drizzle: Light and dense intensity
+        m.insert(61, " ");
+        m.insert(63, " ");
+        m.insert(65, " "); // Rain: Slight, moderate and heavy intensity
+        m.insert(66, " ");
+        m.insert(67, " "); // Freezing Rain: Light and heavy intensity
+        m.insert(71, " ");
+        m.insert(73, " ");
+        m.insert(75, " "); // Snow fall: Slight, moderate, and heavy intensity
+        m.insert(77, " "); // Snow grains
+        m.insert(80, " ");
+        m.insert(81, " ");
+        m.insert(82, " "); // Rain showers: Slight, moderate, and violent
+        m.insert(85, " ");
+        m.insert(86, " "); // Snow showers slight and heavy
+        m.insert(95, " "); // Thunderstorm: Slight or moderate
+        m.insert(96, " ");
+        m.insert(99, " "); // Thunderstorm with slight and heavy hail
+        m
+    };
+}
+
+lazy_static! {
+    static ref OPEN_METEO_NIGHT_ICONS: HashMap<i32, &'static str> = {
+        let mut m = HashMap::new();
+        m.insert(0, ""); // Clear sky
+        m.insert(1, "");
+        m.insert(2, "");
+        m.insert(3, ""); // Mainly clear, partly cloudy, and overcast
+        m.insert(45, "");
+        m.insert(48, ""); // Fog
+        m.insert(51, "");
+        m.insert(53, "");
+        m.insert(55, ""); // Drizzle: Light, moderate, and dense intensity
+        m.insert(56, "");
+        m.insert(57, ""); // Freezing Drizzle: Light and dense intensity
+        m.insert(61, "");
+        m.insert(63, "");
+        m.insert(65, ""); // Rain: Slight, moderate and heavy intensity
+        m.insert(66, "");
+        m.insert(67, ""); // Freezing Rain: Light and heavy intensity
+        m.insert(71, "");
+        m.insert(73, "");
+        m.insert(75, ""); // Snow fall: Slight, moderate, and heavy intensity
+        m.insert(77, ""); // Snow grains
+        m.insert(80, "");
+        m.insert(81, "");
+        m.insert(82, ""); // Rain showers: Slight, moderate, and violent
+        m.insert(85, "");
+        m.insert(86, ""); // Snow showers slight and heavy
+        m.insert(95, ""); // Thunderstorm: Slight or moderate
+        m.insert(96, "");
+        m.insert(99, ""); // Thunderstorm with slight and heavy hail
+        m
+    };
+}
+
 #[test]
 fn valid_code_for_day() {
-    let icon = TimeOfDay::Day.icon(1006);
+    let icon = TimeOfDay::Day
+        .icon(crate::weather::Provider::WeatherAPI("".to_string()), 1006);
 
     assert_eq!(icon, " ".to_string());
 }
 
 #[test]
 fn valid_code_for_night() {
-    let icon = TimeOfDay::Night.icon(1195);
+    let icon = TimeOfDay::Night
+        .icon(crate::weather::Provider::WeatherAPI("".to_string()), 1195);
 
     assert_eq!(icon, "".to_string());
 }
 
 #[test]
 fn invalid_code_for() {
-    let icon = TimeOfDay::Night.icon(9999);
+    let icon = TimeOfDay::Night
+        .icon(crate::weather::Provider::WeatherAPI("".to_string()), 9999);
 
     assert_eq!(icon, "?".to_string());
 }

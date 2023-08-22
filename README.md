@@ -2,7 +2,16 @@
 
 A command line tool for getting the weather conditions at the current location.
 
+## Weather Sources
+
+- [open-meteo.com](https://open-meteo.com/)
+- [weatherapi.com](https://www.weatherapi.com/) \*
+
+\* requires an [api key](https://www.weatherapi.com/docs/#intro-authentication)
+
 ## Usage
+
+By default the Open-Meteo weather provider will be used along with a location determined by the machine's ip address.
 
 ```sh
 > conditions current | jq
@@ -10,6 +19,22 @@ A command line tool for getting the weather conditions at the current location.
   "temp": 57,
   "icon": ""
 }
+```
+
+### Weather API
+
+In order to use the Weather API provider create an account and then an API Key. Then persist the api key in settings.
+
+```bash
+conditions weather-api-key set [your-api-key]
+```
+
+### Location
+
+If you prefer to set a specific location you can do so via a postal code:
+
+```bash
+conditions location set [postal-code]
 ```
 
 ### SketchyBar
