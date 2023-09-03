@@ -28,6 +28,7 @@ pub fn run() -> eyre::Result<String> {
             LocationSubcommand::View => {
                 Config::load()?.get_location()?.to_string()
             }
+            LocationSubcommand::Unset => Config::unset_location()?,
         },
         Command::WeatherApiKey(cmd) => match &cmd.command {
             WeatherApiKeySubcommand::Set(input) => {
@@ -38,6 +39,7 @@ pub fn run() -> eyre::Result<String> {
 
                 format!("token stored as: {}", token)
             }
+            WeatherApiKeySubcommand::Unset => Config::unset_weatherapi_token()?,
         },
         Command::Unit(cmd) => match &cmd.command {
             UnitSubcommand::Set(unit) => Config::set_unit(unit.unit)?,

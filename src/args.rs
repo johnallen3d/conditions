@@ -46,10 +46,12 @@ pub struct WeatherApiKeyCommand {
 
 #[derive(Debug, Subcommand)]
 pub enum WeatherApiKeySubcommand {
-    /// Store your weatherapi.com api-key
+    /// Store your API key
     Set(SetApiKey),
-    /// View stored weatherapi.com api-key
+    /// Display the current key
     View,
+    /// Remove the stored key
+    Unset,
 }
 
 #[derive(Debug, Args)]
@@ -70,6 +72,8 @@ pub enum LocationSubcommand {
     Set(SetLocation),
     /// View stored location
     View,
+    /// Unset current location
+    Unset,
 }
 
 #[derive(Debug, Args)]
