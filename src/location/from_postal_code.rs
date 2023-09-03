@@ -25,8 +25,7 @@ use super::*;
 //     ]
 //   }
 // ]
-pub const URL: &str =
-    "https://nominatim.openstreetmap.org/search.php?format=jsonv2&postalcode=";
+pub const URL: &str = "https://nominatim.openstreetmap.org/search.php";
 
 #[derive(Clone, Debug, Default, PartialEq, Deserialize, Serialize)]
 struct Response {
@@ -48,23 +47,43 @@ impl From<Response> for Location {
 
 pub struct Client {
     postal_code: String,
+    country: String,
 }
 
 impl Client {
-    pub fn new(postal_code: Option<&str>) -> Self {
-        Self {
-            postal_code: postal_code.unwrap().to_string(),
+    pub fn new(region: Option<&str>) -> eyre::Result<Self> {
+        let (postal_code, country) =
+            region.unwrap().split_once(',').ok_or_else(|| {
+                eyre::eyre!(ParseCoordinatesError::InvalidFormat(
+                    "missing comma or text before/after comma".to_string(),
+                ))
+            })?;
+
+        if postal_code.is_empty() {
+            Err(eyre::eyre!(ParseCoordinatesError::InvalidFormat(
+                "missing postal code".to_string()
+            )))?;
         }
+
+        if country.is_empty() {
+            Err(eyre::eyre!(ParseCoordinatesError::InvalidFormat(
+                "missing country".to_string()
+            )))?;
+        }
+
+        Ok(Self {
+            postal_code: postal_code.to_string(),
+            country: country.to_string(),
+        })
     }
 }
 
 impl LocationProvider for Client {
     fn locate(&self) -> eyre::Result<Location> {
-        let url = format!("{}{}", URL, self.postal_code);
-
-        ureq::get(&url)
+        ureq::get(URL)
+            .query_pairs(self.query_pairs())
             .call()
-            .map_err(|_| ParseCoordinatesError::InvalidFormat)
+            .map_err(|_| eyre::eyre!("unknown error"))
             .wrap_err("error getting location from postal code")?
             .into_json::<Vec<Response>>()
             .wrap_err("error parsing response into Vec<Response>")?
@@ -76,5 +95,13 @@ impl LocationProvider for Client {
             })
             .wrap_err("error getting the first element from response")
             .map(|location| Location::from(location.to_owned()))
+    }
+
+    fn query_pairs(&self) -> Vec<(&str, &str)> {
+        vec![
+            ("format", "json"),
+            ("postalcode", self.postal_code.as_str()),
+            ("country", self.country.as_str()),
+        ]
     }
 }

@@ -22,7 +22,7 @@ pub const CONFIG_NAME: &str = "config";
 #[serde(default)]
 pub struct Config {
     #[serde(flatten)]
-    pub location: Option<crate::location::Location>,
+    pub location: Option<Location>,
     pub unit: Unit,
     pub weatherapi_token: Option<String>,
 }
@@ -45,17 +45,27 @@ impl Config {
         Ok(format!("{}", Self::load()?))
     }
 
-    pub fn get_location(&self) -> eyre::Result<Option<Location>> {
+    pub fn get_location(&self) -> eyre::Result<Location> {
         match &self.location {
-            Some(location) => Ok(Some(location.clone())),
-            None => Err(ParseConfigError::Missing("location".to_owned()))
-                .wrap_err("error getting location"),
+            Some(location) => Ok(location.clone()),
+            None => {
+                eprintln!(
+                    "location not set, trying to infer via: {}",
+                    location::from_ip::URL,
+                );
+
+                let inferred = location::get(None)?;
+
+                eprintln!("inferred location: {}", inferred.loc);
+
+                Ok(inferred)
+            }
         }
     }
 
-    pub fn set_location(postal_code: &str) -> eyre::Result<String> {
+    pub fn set_location(region: &str) -> eyre::Result<String> {
         let mut config = Self::load()?;
-        let location = location::get(Some(postal_code))?;
+        let location = location::get(Some(region))?;
 
         config.location = Some(location);
         config.store()?;
@@ -92,7 +102,6 @@ impl Config {
     }
 
     pub fn store(&self) -> eyre::Result<()> {
-        println!("{:?}", self);
         confy::store(APP_NAME, CONFIG_NAME, self)
             .wrap_err("error saving config")
     }

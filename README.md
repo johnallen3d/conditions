@@ -34,7 +34,13 @@ conditions weather-api-key set [your-api-key]
 If you prefer to set a specific location you can do so via a postal code:
 
 ```bash
-conditions location set [postal-code]
+conditions location set "[postal-code], [country]"
+```
+
+For example:
+
+```bash
+conditions location set "10001, usa"
 ```
 
 ### SketchyBar
