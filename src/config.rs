@@ -73,6 +73,15 @@ impl Config {
         Ok("location stored successfully".to_string())
     }
 
+    pub fn unset_location() -> eyre::Result<String> {
+        let mut config = Self::load()?;
+
+        config.location = None;
+        config.store()?;
+
+        Ok("location unset successfully".to_string())
+    }
+
     pub fn set_unit(unit: Unit) -> eyre::Result<String> {
         let mut config = Self::load()?;
 
@@ -84,21 +93,28 @@ impl Config {
 
     pub fn get_weatherapi_token(&self) -> eyre::Result<String> {
         match &self.weatherapi_token {
-            Some(token) => Ok(token.clone()),
-            None => {
-                Err(ParseConfigError::Missing("weatherapi token".to_owned()))
-                    .wrap_err("error getting api token")
-            }
+            Some(key) => Ok(key.clone()),
+            None => Err(ParseConfigError::Missing("weatherapi key".to_owned()))
+                .wrap_err("error getting api key"),
         }
     }
 
-    pub fn set_weatherapi_token(token: &str) -> eyre::Result<String> {
+    pub fn set_weatherapi_token(key: &str) -> eyre::Result<String> {
         let mut config = Self::load()?;
 
-        config.weatherapi_token = Some(token.to_owned());
+        config.weatherapi_token = Some(key.to_owned());
         config.store()?;
 
-        Ok("weatherapi.com token stored successfully".to_owned())
+        Ok("weatherapi.com key stored successfully".to_owned())
+    }
+
+    pub fn unset_weatherapi_token() -> eyre::Result<String> {
+        let mut config = Self::load()?;
+
+        config.weatherapi_token = None;
+        config.store()?;
+
+        Ok("weatherapi.com key unset successfully".to_owned())
     }
 
     pub fn store(&self) -> eyre::Result<()> {
@@ -113,7 +129,7 @@ impl fmt::Display for Config {
 
         write!(
             fmt,
-            "Stored Configuration\n  Coordinates: {}\n  Postal Code: {}\n  Unit: {}\n  Weather API Token: {}",
+            "Stored Configuration\n  Coordinates: {}\n  Postal Code: {}\n  Unit: {}\n  Weather API Key: {}",
             location.loc.clone(),
             location.postal_code.clone(),
             self.unit,
