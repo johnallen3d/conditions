@@ -74,8 +74,8 @@ pub enum LocationSubcommand {
 
 #[derive(Debug, Args)]
 pub struct SetLocation {
-    /// Postal to retrieve weather for
-    pub postal_code: String,
+    /// Postal code and country to retrieve weather for: example - 10001,usa
+    pub region: String,
 }
 
 #[derive(Debug, Args)]

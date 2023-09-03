@@ -46,10 +46,15 @@ impl Client {
 impl LocationProvider for Client {
     fn locate(&self) -> eyre::Result<Location> {
         ureq::get(URL)
+            .query_pairs(self.query_pairs())
             .call()
-            .map_err(|_| ParseCoordinatesError::InvalidFormat)?
+            .map_err(|_| eyre::eyre!("unknown error"))?
             .into_json::<Response>()
             .wrap_err("error parsing response from ipinfo.io")
             .map(Location::from)
+    }
+
+    fn query_pairs(&self) -> Vec<(&str, &str)> {
+        vec![]
     }
 }

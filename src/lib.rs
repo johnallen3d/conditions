@@ -23,12 +23,11 @@ pub fn run() -> eyre::Result<String> {
         }
         Command::Location(cmd) => match &cmd.command {
             LocationSubcommand::Set(input) => {
-                Config::set_location(&input.postal_code)?
+                Config::set_location(&input.region)?
             }
-            LocationSubcommand::View => Config::load()?
-                .get_location()?
-                .unwrap_or_default()
-                .to_string(),
+            LocationSubcommand::View => {
+                Config::load()?.get_location()?.to_string()
+            }
         },
         Command::WeatherApiKey(cmd) => match &cmd.command {
             WeatherApiKeySubcommand::Set(input) => {

@@ -1,9 +1,6 @@
 use serde::Serialize;
 
-use crate::{
-    config::Config, icons, location, location::Location,
-    weather::CurrentConditions,
-};
+use crate::{config::Config, icons, weather::CurrentConditions};
 
 #[derive(Debug, Serialize)]
 struct Output {
@@ -30,28 +27,11 @@ impl From<CurrentConditions> for Output {
 
 pub struct Conditions {
     config: Config,
-    location: Location,
 }
 
 impl Conditions {
     pub fn new(config: Config) -> eyre::Result<Self> {
-        let location = match config.get_location().unwrap_or_default() {
-            Some(location) => location,
-            None => {
-                eprintln!(
-                    "location not set, trying to infer via: {}",
-                    location::from_ip::URL,
-                );
-
-                let inferred = location::get(None)?;
-
-                eprintln!("inferred location: {}", inferred.loc);
-
-                inferred
-            }
-        };
-
-        Ok(Self { config, location })
+        Ok(Self { config })
     }
 
     /// Fetch the current weather conditions given supplied configuration.
@@ -69,11 +49,13 @@ impl Conditions {
             None => crate::weather::Provider::OpenMeteo,
         };
 
+        let location = self.config.get_location()?;
+
         let mut conditions = crate::weather::CurrentConditions::get(
             provider.clone(),
             self.config.unit,
-            &self.location.latitude,
-            &self.location.longitude,
+            &location.latitude,
+            &location.longitude,
         )?;
 
         let time_of_day = icons::TimeOfDay::from(conditions.is_day);
