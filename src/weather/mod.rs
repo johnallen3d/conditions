@@ -1,12 +1,14 @@
+use crate::icons::TimeOfDay;
+
 pub(crate) mod open_meteo;
 pub(crate) mod weather_api;
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct CurrentConditions {
     pub code: i32,
     pub temp_c: f32,
     pub temp_f: f32,
-    pub is_day: bool,
+    pub time_of_day: TimeOfDay,
     pub icon: Option<String>,
 }
 

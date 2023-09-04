@@ -4,6 +4,7 @@ use serde::Deserialize;
 use thiserror::Error;
 
 use super::{CurrentConditions, WeatherProvider};
+use crate::icons::TimeOfDay;
 
 static WEATHERAPI_URL: &str = "http://api.weatherapi.com/v1/current.json";
 
@@ -87,7 +88,7 @@ impl From<WeatherAPIResult> for CurrentConditions {
             code: result.current.condition.code,
             temp_c: result.current.temp_c,
             temp_f: result.current.temp_f,
-            is_day: result.current.is_day == 1,
+            time_of_day: TimeOfDay::from(result.current.is_day),
             icon: None,
         }
     }
