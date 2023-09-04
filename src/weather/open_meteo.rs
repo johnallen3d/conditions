@@ -54,6 +54,8 @@ struct Response {
 
 impl WeatherProvider for Client {
     fn current(&self) -> eyre::Result<CurrentConditions> {
+        eprintln!("fetching weather from open-meteo.com");
+
         let parsed = ureq::get(URL)
             .query_pairs(self.query_pairs())
             .call()?
@@ -79,6 +81,7 @@ impl From<Response> for CurrentConditions {
             temp_f: result.current_weather.temperature,
             time_of_day: TimeOfDay::from(result.current_weather.is_day),
             icon: None,
+            provider: super::Provider::OpenMeteo,
         }
     }
 }
