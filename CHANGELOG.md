@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1](https://github.com/johnallen3d/conditions/compare/v0.1.0...v0.1.1) - 2023-09-04
+
+### Other
+- *(bin)* setup binary release ([#77](https://github.com/johnallen3d/conditions/pull/77))
+- *(deps)* bump thiserror from 1.0.47 to 1.0.48 ([#70](https://github.com/johnallen3d/conditions/pull/70))
+
 ## [0.1.0](https://github.com/johnallen3d/conditions/releases/tag/v0.1.0) - 2023-02-13
 
 ### Added
