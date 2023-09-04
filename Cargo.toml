@@ -10,8 +10,6 @@ categories = ["command-line-utilities"]
 readme = "README.md"
 
 license = "MIT"
-license-file = "LICENSE.md"
-
 
 [dependencies]
 clap = { version = "4.4.2", features = ["derive"] }
