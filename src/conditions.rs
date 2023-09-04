@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-use crate::{config::Config, icons, weather::CurrentConditions};
+use crate::{config::Config, weather::CurrentConditions};
 
 #[derive(Debug, Serialize)]
 struct Output {
@@ -58,9 +58,8 @@ impl Conditions {
             &location.longitude,
         )?;
 
-        let time_of_day = icons::TimeOfDay::from(conditions.is_day);
-
-        conditions.set_icon(time_of_day.icon(provider, conditions.code));
+        conditions
+            .set_icon(conditions.time_of_day.icon(provider, conditions.code));
 
         let output = Output::from(conditions);
 

@@ -1,18 +1,19 @@
 use lazy_static::lazy_static;
 use std::collections::HashMap;
 
-#[derive(PartialEq)]
+use crate::weather::Provider;
+
+#[derive(Debug, PartialEq)]
 pub enum TimeOfDay {
     Night,
     Day,
 }
 
-impl From<bool> for TimeOfDay {
-    fn from(is_day: bool) -> Self {
-        if is_day {
-            TimeOfDay::Day
-        } else {
-            TimeOfDay::Night
+impl From<u8> for TimeOfDay {
+    fn from(is_day: u8) -> Self {
+        match is_day {
+            1 => TimeOfDay::Day,
+            _ => TimeOfDay::Night,
         }
     }
 }
@@ -24,11 +25,11 @@ impl TimeOfDay {
         code: i32,
     ) -> String {
         let icons: &HashMap<i32, &'static str> = match provider {
-            crate::weather::Provider::WeatherAPI(_) => match self {
+            Provider::WeatherAPI(_) => match self {
                 TimeOfDay::Day => &WEATHERAPI_DAY_ICONS,
                 TimeOfDay::Night => &WEATHERAPI_NIGHT_ICONS,
             },
-            crate::weather::Provider::OpenMeteo => match self {
+            Provider::OpenMeteo => match self {
                 TimeOfDay::Day => &OPEN_METEO_DAY_ICONS,
                 TimeOfDay::Night => &OPEN_METEO_NIGHT_ICONS,
             },

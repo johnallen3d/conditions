@@ -1,6 +1,7 @@
 use serde::Deserialize;
 
 use super::{CurrentConditions, WeatherProvider};
+use crate::icons::TimeOfDay;
 
 // {
 //   "latitude": 35.159126,
@@ -43,7 +44,7 @@ impl Client {
 struct CurrentWeather {
     temperature: f32,
     weathercode: i32,
-    is_day: i32,
+    is_day: u8,
 }
 
 #[derive(Debug, Deserialize)]
@@ -76,7 +77,7 @@ impl From<Response> for CurrentConditions {
             // TODO: this api only returns requested unit
             temp_c: result.current_weather.temperature,
             temp_f: result.current_weather.temperature,
-            is_day: result.current_weather.is_day == 1,
+            time_of_day: TimeOfDay::from(result.current_weather.is_day),
             icon: None,
         }
     }
