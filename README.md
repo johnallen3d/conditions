@@ -9,6 +9,20 @@ A command line tool for getting the weather conditions at the current location.
 
 \* requires an [api key](https://www.weatherapi.com/docs/#intro-authentication)
 
+## Installation
+
+At this time it is necessary to compile and install the crate locally. The simplest way to do this is to [install the Rust toolchain](https://rustup.rs/).
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+Then use `cargo` to build and install from [crates.io](https://crates.io/crates/conditions)
+
+```bash
+cargo install conditions
+```
+
 ## Usage
 
 By default the Open-Meteo weather provider will be used along with a location determined by the machine's ip address.
