@@ -3,7 +3,15 @@ name = "conditions"
 version = "0.1.0"
 edition = "2021"
 authors = ["John Allen <johnallen3d@threedogconsulting.com>"]
-description = "Fetch basic weather conditions for current location"
+repository = "https://github.com/johnallen3d/conditions"
+description = "Fetch basic weather conditions for current or specified location"
+keywords = ["weather"]
+categories = ["command-line-utilities"]
+readme = "README.md"
+
+license = "MIT"
+license-file = "LICENSE.md"
+
 
 [dependencies]
 clap = { version = "4.4.2", features = ["derive"] }
