@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2](https://github.com/johnallen3d/conditions/compare/v0.1.1...v0.1.2) - 2023-09-05
+
+### Added
+- *(weather)* add fallback ([#83](https://github.com/johnallen3d/conditions/pull/83))
+
+### Other
+- add installation instructions ([#81](https://github.com/johnallen3d/conditions/pull/81))
+
 ## [0.1.1](https://github.com/johnallen3d/conditions/compare/v0.1.0...v0.1.1) - 2023-09-04
 
 ### Other
