@@ -1,3 +1,5 @@
+use std::fmt;
+
 use crate::icons::TimeOfDay;
 
 pub(crate) mod open_meteo;
@@ -25,6 +27,16 @@ pub enum Provider {
     OpenMeteo,
 }
 
+impl fmt::Display for Provider {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let name = match self {
+            Provider::WeatherAPI(_) => "WeatherAPI",
+            Provider::OpenMeteo => "OpenMeteo",
+        };
+        write!(f, "{}", name)
+    }
+}
+
 impl CurrentConditions {
     pub fn get(
         providers: Vec<Provider>,
@@ -32,24 +44,27 @@ impl CurrentConditions {
         latitude: &str,
         longitude: &str,
     ) -> eyre::Result<CurrentConditions> {
-        for provider in providers {
-            let client: Box<dyn WeatherProvider> = match provider {
-                Provider::WeatherAPI(key) => {
-                    Box::new(weather_api::Client::new(
-                        key,
-                        latitude.to_string(),
-                        longitude.to_string(),
-                    ))
-                }
-                Provider::OpenMeteo => Box::new(open_meteo::Client::new(
+        for provider in &providers {
+            let result = match provider {
+                Provider::WeatherAPI(key) => weather_api::Client::new(
+                    key.to_string(),
+                    latitude.to_string(),
+                    longitude.to_string(),
+                )
+                .current(),
+                Provider::OpenMeteo => open_meteo::Client::new(
                     unit,
                     latitude.to_string(),
                     longitude.to_string(),
-                )),
+                )
+                .current(),
             };
 
-            if let Ok(conditions) = client.current() {
-                return Ok(conditions);
+            match result {
+                Ok(conditions) => return Ok(conditions),
+                Err(_) => {
+                    eprintln!("error fetching weather from: {}", provider)
+                }
             }
         }
 

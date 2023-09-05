@@ -6,7 +6,7 @@ use thiserror::Error;
 use super::{CurrentConditions, WeatherProvider};
 use crate::icons::TimeOfDay;
 
-static URL: &str = "http://api.weatherapi.com/v1/current.json";
+static URL: &str = "http://api.weatherapi.com/v1/current.jso";
 
 pub struct Client {
     key: String,
@@ -23,8 +23,6 @@ impl Client {
 
 impl WeatherProvider for Client {
     fn current(&self) -> eyre::Result<CurrentConditions> {
-        eprintln!("fetching weather from weatherapi.com");
-
         let parsed = ureq::get(URL)
             .query_pairs(self.query_pairs())
             .call()?

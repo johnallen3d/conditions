@@ -49,14 +49,9 @@ impl Config {
         match &self.location {
             Some(location) => Ok(location.clone()),
             None => {
-                eprintln!(
-                    "location not set, trying to infer via: {}",
-                    location::from_ip::URL,
-                );
-
                 let inferred = location::get(None)?;
 
-                eprintln!("inferred location: {}", inferred.loc);
+                eprintln!("location not set, inferred postal code: {}", inferred.postal_code);
 
                 Ok(inferred)
             }
