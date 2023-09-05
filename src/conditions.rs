@@ -20,7 +20,7 @@ impl From<CurrentConditions> for Output {
 
         Self {
             temp: temp as i32,
-            icon: conditions.icon.unwrap_or_default(),
+            icon: conditions.icon,
         }
     }
 }
@@ -52,18 +52,12 @@ impl Conditions {
 
         let location = self.config.get_location()?;
 
-        let mut conditions = CurrentConditions::get(
+        let conditions = CurrentConditions::get(
             providers,
             self.config.unit,
             &location.latitude,
             &location.longitude,
         )?;
-
-        conditions.set_icon(
-            conditions
-                .time_of_day
-                .icon(conditions.provider.clone(), conditions.code),
-        );
 
         let output = Output::from(conditions);
 

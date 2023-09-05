@@ -1,18 +1,13 @@
 use std::fmt;
 
-use crate::icons::TimeOfDay;
-
 pub(crate) mod open_meteo;
 pub(crate) mod weather_api;
 
 #[derive(Debug)]
 pub struct CurrentConditions {
-    pub code: i32,
     pub temp_c: f32,
     pub temp_f: f32,
-    pub time_of_day: TimeOfDay,
-    pub icon: Option<String>,
-    pub provider: Provider,
+    pub icon: String,
 }
 
 pub trait WeatherProvider {
@@ -69,9 +64,5 @@ impl CurrentConditions {
         }
 
         Err(eyre::eyre!("no weather providers succeeded"))
-    }
-
-    pub fn set_icon(&mut self, value: String) {
-        self.icon = Some(value);
     }
 }

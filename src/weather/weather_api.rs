@@ -84,13 +84,13 @@ struct WeatherAPIResultCondition {
 
 impl From<WeatherAPIResult> for CurrentConditions {
     fn from(result: WeatherAPIResult) -> Self {
+        let icon = TimeOfDay::from(result.current.is_day)
+            .icon(super::Provider::OpenMeteo, result.current.condition.code);
+
         Self {
-            code: result.current.condition.code,
             temp_c: result.current.temp_c,
             temp_f: result.current.temp_f,
-            time_of_day: TimeOfDay::from(result.current.is_day),
-            icon: None,
-            provider: super::Provider::WeatherAPI("".to_string()),
+            icon,
         }
     }
 }
