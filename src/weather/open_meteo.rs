@@ -72,13 +72,15 @@ impl WeatherProvider for Client {
 
 impl From<Response> for CurrentConditions {
     fn from(result: Response) -> Self {
+        let icon = TimeOfDay::from(result.current_weather.is_day).icon(
+            super::Provider::OpenMeteo,
+            result.current_weather.weathercode,
+        );
+
         Self {
-            code: result.current_weather.weathercode,
-            // TODO: this api only returns requested unit
             temp_c: result.current_weather.temperature,
             temp_f: result.current_weather.temperature,
-            time_of_day: TimeOfDay::from(result.current_weather.is_day),
-            icon: None,
+            icon,
         }
     }
 }

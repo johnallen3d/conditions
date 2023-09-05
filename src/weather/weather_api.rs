@@ -6,7 +6,7 @@ use thiserror::Error;
 use super::{CurrentConditions, WeatherProvider};
 use crate::icons::TimeOfDay;
 
-static WEATHERAPI_URL: &str = "http://api.weatherapi.com/v1/current.json";
+static URL: &str = "http://api.weatherapi.com/v1/current.jso";
 
 pub struct Client {
     key: String,
@@ -23,7 +23,7 @@ impl Client {
 
 impl WeatherProvider for Client {
     fn current(&self) -> eyre::Result<CurrentConditions> {
-        let parsed = ureq::get(WEATHERAPI_URL)
+        let parsed = ureq::get(URL)
             .query_pairs(self.query_pairs())
             .call()?
             .into_json::<WeatherAPIResult>()?;
@@ -84,12 +84,13 @@ struct WeatherAPIResultCondition {
 
 impl From<WeatherAPIResult> for CurrentConditions {
     fn from(result: WeatherAPIResult) -> Self {
+        let icon = TimeOfDay::from(result.current.is_day)
+            .icon(super::Provider::OpenMeteo, result.current.condition.code);
+
         Self {
-            code: result.current.condition.code,
             temp_c: result.current.temp_c,
             temp_f: result.current.temp_f,
-            time_of_day: TimeOfDay::from(result.current.is_day),
-            icon: None,
+            icon,
         }
     }
 }
