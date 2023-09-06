@@ -6,7 +6,7 @@ use thiserror::Error;
 use super::{CurrentConditions, WeatherProvider};
 use crate::icons::TimeOfDay;
 
-static URL: &str = "http://api.weatherapi.com/v1/current.jso";
+static URL: &str = "http://api.weatherapi.com/v1/current.json";
 
 pub struct Client {
     key: String,
@@ -84,8 +84,10 @@ struct WeatherAPIResultCondition {
 
 impl From<WeatherAPIResult> for CurrentConditions {
     fn from(result: WeatherAPIResult) -> Self {
-        let icon = TimeOfDay::from(result.current.is_day)
-            .icon(super::Provider::OpenMeteo, result.current.condition.code);
+        let icon = TimeOfDay::from(result.current.is_day).icon(
+            super::Provider::WeatherAPI("".to_string()),
+            result.current.condition.code,
+        );
 
         Self {
             temp_c: result.current.temp_c,
