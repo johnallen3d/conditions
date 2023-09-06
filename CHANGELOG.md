@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3](https://github.com/johnallen3d/conditions/compare/v0.1.2...v0.1.3) - 2023-09-06
+
+### Fixed
+- *(weather)* typo and invalid enum ([#87](https://github.com/johnallen3d/conditions/pull/87))
+
 ## [0.1.2](https://github.com/johnallen3d/conditions/compare/v0.1.1...v0.1.2) - 2023-09-05
 
 ### Added
