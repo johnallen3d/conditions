@@ -3,36 +3,28 @@ use std::convert::From;
 use serde::Deserialize;
 use thiserror::Error;
 
-use super::{CurrentConditions, WeatherProvider};
+use super::CurrentConditions;
 use crate::icons::TimeOfDay;
 
-static URL: &str = "http://api.weatherapi.com/v1/current.json";
-
 pub struct Client {
-    key: String,
-    location: String,
+    query: Vec<(String, String)>,
 }
 
 impl Client {
     pub fn new(key: String, latitude: String, longitude: String) -> Self {
         let location = format!("{},{}", latitude, longitude);
 
-        Self { key, location }
+        Self {
+            query: vec![("key".to_string(), key), ("q".to_string(), location)],
+        }
     }
 }
 
-impl WeatherProvider for Client {
-    fn current(&self) -> eyre::Result<CurrentConditions> {
-        let parsed = ureq::get(URL)
-            .query_pairs(self.query_pairs())
-            .call()?
-            .into_json::<WeatherAPIResult>()?;
+impl crate::api::Fetchable<Response, CurrentConditions> for Client {
+    const URL: &'static str = "http://api.weatherapi.com/v1/current.json";
 
-        Ok(CurrentConditions::from(parsed))
-    }
-
-    fn query_pairs(&self) -> Vec<(&str, &str)> {
-        vec![("key", self.key.as_str()), ("q", self.location.as_str())]
+    fn query(&self) -> Option<&Vec<(String, String)>> {
+        Some(&self.query)
     }
 }
 
@@ -65,7 +57,7 @@ impl std::convert::From<std::io::Error> for FetchConditionsError {
 ///   }
 /// }
 #[derive(Debug, Deserialize)]
-struct WeatherAPIResult {
+pub struct Response {
     current: WeatherAPIResultCurrent,
 }
 
@@ -82,8 +74,8 @@ struct WeatherAPIResultCondition {
     code: i32,
 }
 
-impl From<WeatherAPIResult> for CurrentConditions {
-    fn from(result: WeatherAPIResult) -> Self {
+impl From<Response> for CurrentConditions {
+    fn from(result: Response) -> Self {
         let icon = TimeOfDay::from(result.current.is_day).icon(
             super::Provider::WeatherAPI("".to_string()),
             result.current.condition.code,
