@@ -1,5 +1,6 @@
 use std::fmt;
 
+use crate::api::Fetchable;
 pub(crate) mod open_meteo;
 pub(crate) mod weather_api;
 
@@ -46,13 +47,13 @@ impl CurrentConditions {
                     latitude.to_string(),
                     longitude.to_string(),
                 )
-                .current(),
+                .fetch(),
                 Provider::OpenMeteo => open_meteo::Client::new(
                     unit,
                     latitude.to_string(),
                     longitude.to_string(),
                 )
-                .current(),
+                .fetch(),
             };
 
             match result {

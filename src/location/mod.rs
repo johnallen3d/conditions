@@ -1,10 +1,12 @@
 use std::fmt;
 
+use eyre::WrapErr;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 pub(crate) mod from_ip;
 pub(crate) mod from_postal_code;
+use crate::api::Fetchable;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum ParseCoordinatesError {
@@ -14,8 +16,23 @@ pub enum ParseCoordinatesError {
     UnknownLocation(String),
 }
 
-pub trait LocationProvider {
-    fn locate(&self) -> eyre::Result<Location>;
+pub trait HttpClient<T, U>
+where
+    for<'de> T: Deserialize<'de>,
+    U: From<T>,
+{
+    fn fetch(&self) -> eyre::Result<U> {
+        ureq::get(self.url())
+            .query_pairs(self.query_pairs())
+            .call()
+            .map_err(|_| eyre::eyre!("unknown error"))?
+            .into_json::<T>()
+            .wrap_err(format!("error parsing response from: {}", self.url()))
+            .map(U::from)
+    }
+
+    fn url(&self) -> &str;
+
     fn query_pairs(&self) -> Vec<(&str, &str)>;
 }
 
@@ -38,11 +55,9 @@ impl fmt::Display for Location {
 }
 
 pub fn get(region: Option<&str>) -> eyre::Result<Location> {
-    let client: Box<dyn LocationProvider> = if region.is_some() {
-        Box::new(from_postal_code::Client::new(region)?)
+    if region.is_some() {
+        from_postal_code::Client::new(region)?.fetch()
     } else {
-        Box::new(from_ip::Client::new())
-    };
-
-    client.locate()
+        from_ip::Client::new().fetch()
+    }
 }

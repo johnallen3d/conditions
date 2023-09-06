@@ -3,6 +3,7 @@ use clap::Parser;
 use args::*;
 use config::Config;
 
+pub(crate) mod api;
 pub mod args;
 mod conditions;
 mod config;

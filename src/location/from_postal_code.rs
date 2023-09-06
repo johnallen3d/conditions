@@ -1,7 +1,7 @@
 use eyre::WrapErr;
 use serde::{Deserialize, Serialize};
 
-use super::*;
+use super::{Location, ParseCoordinatesError};
 
 // https://nominatim.openstreetmap.org/search.php?format=jsonv2&postalcode=29715
 // [
@@ -25,10 +25,9 @@ use super::*;
 //     ]
 //   }
 // ]
-pub const URL: &str = "https://nominatim.openstreetmap.org/search.php";
 
 #[derive(Clone, Debug, Default, PartialEq, Deserialize, Serialize)]
-struct Response {
+pub struct Response {
     lat: String,
     lon: String,
     name: String,
@@ -46,8 +45,7 @@ impl From<Response> for Location {
 }
 
 pub struct Client {
-    postal_code: String,
-    country: String,
+    query: Vec<(String, String)>,
 }
 
 impl Client {
@@ -72,15 +70,20 @@ impl Client {
         }
 
         Ok(Self {
-            postal_code: postal_code.to_string(),
-            country: country.to_string(),
+            query: vec![
+                ("format".to_string(), "json".to_string()),
+                ("postalcode".to_string(), postal_code.to_string()),
+                ("country".to_string(), country.to_string()),
+            ],
         })
     }
 }
 
-impl LocationProvider for Client {
-    fn locate(&self) -> eyre::Result<Location> {
-        ureq::get(URL)
+impl crate::api::Fetchable<Response, Location> for Client {
+    const URL: &'static str = "https://nominatim.openstreetmap.org/search.php";
+
+    fn fetch(&self) -> eyre::Result<Location> {
+        ureq::get(Self::URL)
             .query_pairs(self.query_pairs())
             .call()
             .map_err(|_| eyre::eyre!("unknown error"))
@@ -97,11 +100,7 @@ impl LocationProvider for Client {
             .map(|location| Location::from(location.to_owned()))
     }
 
-    fn query_pairs(&self) -> Vec<(&str, &str)> {
-        vec![
-            ("format", "json"),
-            ("postalcode", self.postal_code.as_str()),
-            ("country", self.country.as_str()),
-        ]
+    fn query(&self) -> Option<&Vec<(String, String)>> {
+        Some(&self.query)
     }
 }

@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-use super::{CurrentConditions, WeatherProvider};
+use super::{CurrentConditions, Provider};
 use crate::icons::TimeOfDay;
 
 // {
@@ -21,8 +21,6 @@ use crate::icons::TimeOfDay;
 //   }
 // }
 //
-static URL: &str = "https://api.open-meteo.com/v1/forecast";
-
 pub struct Client {
     query: Vec<(String, String)>,
 }
@@ -48,34 +46,22 @@ struct CurrentWeather {
 }
 
 #[derive(Debug, Deserialize)]
-struct Response {
+pub struct Response {
     current_weather: CurrentWeather,
 }
 
-impl WeatherProvider for Client {
-    fn current(&self) -> eyre::Result<CurrentConditions> {
-        let parsed = ureq::get(URL)
-            .query_pairs(self.query_pairs())
-            .call()?
-            .into_json::<Response>()?;
+impl crate::api::Fetchable<Response, CurrentConditions> for Client {
+    const URL: &'static str = "https://api.open-meteo.com/v1/forecast";
 
-        Ok(CurrentConditions::from(parsed))
-    }
-
-    fn query_pairs(&self) -> Vec<(&str, &str)> {
-        self.query
-            .iter()
-            .map(|(k, v)| (k.as_str(), v.as_str()))
-            .collect()
+    fn query(&self) -> Option<&Vec<(String, String)>> {
+        Some(&self.query)
     }
 }
 
 impl From<Response> for CurrentConditions {
     fn from(result: Response) -> Self {
-        let icon = TimeOfDay::from(result.current_weather.is_day).icon(
-            super::Provider::OpenMeteo,
-            result.current_weather.weathercode,
-        );
+        let icon = TimeOfDay::from(result.current_weather.is_day)
+            .icon(Provider::OpenMeteo, result.current_weather.weathercode);
 
         Self {
             temp_c: result.current_weather.temperature,
