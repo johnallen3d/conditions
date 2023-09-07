@@ -51,7 +51,10 @@ impl Config {
             None => {
                 let inferred = location::get(None)?;
 
-                eprintln!("location not set, inferred postal code: {}", inferred.postal_code);
+                eprintln!(
+                    "location not set, inferred postal code: {}",
+                    inferred.postal_code
+                );
 
                 Ok(inferred)
             }
