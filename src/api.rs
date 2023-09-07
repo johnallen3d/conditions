@@ -44,8 +44,8 @@ where
     for<'de> T: Deserialize<'de>,
     U: From<T>,
 {
-    /// The API endpoint to fetch data from.
-    const URL: &'static str;
+    /// Provides the API endpoint to fetch data from.
+    fn url(&self) -> &'static str;
 
     /// Makes an HTTP GET request to fetch data from the API endpoint.
     ///
@@ -54,13 +54,31 @@ where
     /// Returns `eyre::Result<U>` where `U` is the type that the deserialized
     /// response will be converted into.
     fn fetch(&self) -> eyre::Result<U> {
-        ureq::get(Self::URL)
+        if !self.is_valid() {
+            return Err(eyre::eyre!("provider is not in a valid state"));
+        }
+
+        ureq::get(self.url())
             .query_pairs(self.query_pairs())
             .call()
             .map_err(|_| eyre::eyre!("unknown error"))?
             .into_json::<T>()
-            .wrap_err(format!("error parsing response from: {}", Self::URL))
+            .wrap_err(format!("error parsing response from: {}", self.url()))
             .map(U::from)
+    }
+
+    /// Checks if the provider is valid for fetching data.
+    ///
+    /// A provider is considered valid if it has all the necessary
+    /// credentials, configurations, or any other prerequisites to
+    /// make an API call successfully.
+    ///
+    /// # Returns
+    ///
+    /// * `true` if the provider is valid and capable of fetching data.
+    /// * `false` otherwise.
+    fn is_valid(&self) -> bool {
+        true
     }
 
     /// Returns optional query parameters as a vector of key-value pairs.

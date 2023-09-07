@@ -1,6 +1,7 @@
 use std::fmt;
 
-use crate::api::Fetchable;
+use crate::{api::Fetchable, config::Config, location::Location};
+
 pub(crate) mod open_meteo;
 pub(crate) mod weather_api;
 
@@ -18,15 +19,14 @@ pub trait WeatherProvider {
 
 #[derive(Clone, Debug)]
 pub enum Provider {
-    // contains api key
-    WeatherAPI(String),
+    WeatherAPI,
     OpenMeteo,
 }
 
 impl fmt::Display for Provider {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let name = match self {
-            Provider::WeatherAPI(_) => "WeatherAPI",
+            Provider::WeatherAPI => "WeatherAPI",
             Provider::OpenMeteo => "OpenMeteo",
         };
         write!(f, "{}", name)
@@ -35,25 +35,19 @@ impl fmt::Display for Provider {
 
 impl CurrentConditions {
     pub fn get(
-        providers: Vec<Provider>,
-        unit: crate::Unit,
-        latitude: &str,
-        longitude: &str,
+        config: &Config,
+        location: &Location,
     ) -> eyre::Result<CurrentConditions> {
+        let providers = vec![Provider::WeatherAPI, Provider::OpenMeteo];
+
         for provider in &providers {
             let result = match provider {
-                Provider::WeatherAPI(key) => weather_api::Client::new(
-                    key.to_string(),
-                    latitude.to_string(),
-                    longitude.to_string(),
-                )
-                .fetch(),
-                Provider::OpenMeteo => open_meteo::Client::new(
-                    unit,
-                    latitude.to_string(),
-                    longitude.to_string(),
-                )
-                .fetch(),
+                Provider::WeatherAPI => {
+                    weather_api::Client::new(config, location).fetch()
+                }
+                Provider::OpenMeteo => {
+                    open_meteo::Client::new(config, location).fetch()
+                }
             };
 
             match result {
