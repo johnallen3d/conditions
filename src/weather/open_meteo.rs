@@ -2,6 +2,8 @@ use serde::Deserialize;
 
 use super::{CurrentConditions, Provider};
 use crate::icons::TimeOfDay;
+use crate::location::Location;
+use crate::Config;
 
 // {
 //   "latitude": 35.159126,
@@ -26,13 +28,15 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new(unit: crate::Unit, latitude: String, longitude: String) -> Self {
+    pub fn new(config: &Config, location: &Location) -> Self {
+        let unit = config.unit.to_string();
+
         Self {
             query: vec![
                 ("current_weather".to_string(), "true".to_string()),
-                ("temperature_unit".to_string(), unit.to_string()),
-                ("latitude".to_string(), latitude),
-                ("longitude".to_string(), longitude),
+                ("temperature_unit".to_string(), unit),
+                ("latitude".to_string(), location.latitude.clone()),
+                ("longitude".to_string(), location.longitude.clone()),
             ],
         }
     }
@@ -51,7 +55,9 @@ pub struct Response {
 }
 
 impl crate::api::Fetchable<Response, CurrentConditions> for Client {
-    const URL: &'static str = "https://api.open-meteo.com/v1/forecast";
+    fn url(&self) -> &'static str {
+        "https://api.open-meteo.com/v1/forecast"
+    }
 
     fn query(&self) -> Option<&Vec<(String, String)>> {
         Some(&self.query)

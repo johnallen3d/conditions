@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-use crate::{config::Config, weather::CurrentConditions, weather::Provider};
+use crate::{config::Config, weather::CurrentConditions};
 
 #[derive(Debug, Serialize)]
 struct Output {
@@ -37,28 +37,12 @@ impl Conditions {
     /// Fetch the current weather conditions given supplied configuration.
     ///
     /// - use configured location or infer location via IP
-    /// - retrieve wather conditions from weatherapi.com for location
-    /// - set icon based on conditions and time of day
+    /// - retrieve wather conditions from weather provider(s) for location
     /// - compose output structure
     /// - convert output to JSON and return
     pub fn fetch(&self) -> eyre::Result<String> {
-        let mut providers = Vec::new();
-
-        if let Some(api_key) = &self.config.weatherapi_token {
-            providers.push(Provider::WeatherAPI(api_key.to_string()));
-        }
-
-        providers.push(Provider::OpenMeteo);
-
         let location = self.config.get_location()?;
-
-        let conditions = CurrentConditions::get(
-            providers,
-            self.config.unit,
-            &location.latitude,
-            &location.longitude,
-        )?;
-
+        let conditions = CurrentConditions::get(&self.config, &location)?;
         let output = Output::from(conditions);
 
         Ok(ureq::serde_json::to_string(&output)?)

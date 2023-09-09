@@ -25,7 +25,7 @@ impl TimeOfDay {
         code: i32,
     ) -> String {
         let icons: &HashMap<i32, &'static str> = match provider {
-            Provider::WeatherAPI(_) => match self {
+            Provider::WeatherAPI => match self {
                 TimeOfDay::Day => &WEATHERAPI_DAY_ICONS,
                 TimeOfDay::Night => &WEATHERAPI_NIGHT_ICONS,
             },
@@ -219,24 +219,23 @@ lazy_static! {
 
 #[test]
 fn valid_code_for_day() {
-    let icon = TimeOfDay::Day
-        .icon(crate::weather::Provider::WeatherAPI("".to_string()), 1006);
+    let icon = TimeOfDay::Day.icon(crate::weather::Provider::WeatherAPI, 1006);
 
     assert_eq!(icon, " ".to_string());
 }
 
 #[test]
 fn valid_code_for_night() {
-    let icon = TimeOfDay::Night
-        .icon(crate::weather::Provider::WeatherAPI("".to_string()), 1195);
+    let icon =
+        TimeOfDay::Night.icon(crate::weather::Provider::WeatherAPI, 1195);
 
     assert_eq!(icon, "".to_string());
 }
 
 #[test]
 fn invalid_code_for() {
-    let icon = TimeOfDay::Night
-        .icon(crate::weather::Provider::WeatherAPI("".to_string()), 9999);
+    let icon =
+        TimeOfDay::Night.icon(crate::weather::Provider::WeatherAPI, 9999);
 
     assert_eq!(icon, "?".to_string());
 }

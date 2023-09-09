@@ -4,24 +4,36 @@ use serde::Deserialize;
 use thiserror::Error;
 
 use super::CurrentConditions;
-use crate::icons::TimeOfDay;
+use crate::{config::Config, icons::TimeOfDay, location::Location};
 
 pub struct Client {
+    is_valid: bool,
     query: Vec<(String, String)>,
 }
 
 impl Client {
-    pub fn new(key: String, latitude: String, longitude: String) -> Self {
-        let location = format!("{},{}", latitude, longitude);
+    pub fn new(config: &Config, location: &Location) -> Self {
+        let key = config.weatherapi_token.clone();
+        let is_valid = key.is_some();
 
         Self {
-            query: vec![("key".to_string(), key), ("q".to_string(), location)],
+            is_valid,
+            query: vec![
+                ("key".to_string(), key.unwrap_or_default()),
+                ("q".to_string(), location.loc.clone()),
+            ],
         }
     }
 }
 
 impl crate::api::Fetchable<Response, CurrentConditions> for Client {
-    const URL: &'static str = "http://api.weatherapi.com/v1/current.json";
+    fn url(&self) -> &'static str {
+        "http://api.weatherapi.com/v1/current.json"
+    }
+
+    fn is_valid(&self) -> bool {
+        self.is_valid
+    }
 
     fn query(&self) -> Option<&Vec<(String, String)>> {
         Some(&self.query)
@@ -76,10 +88,8 @@ struct WeatherAPIResultCondition {
 
 impl From<Response> for CurrentConditions {
     fn from(result: Response) -> Self {
-        let icon = TimeOfDay::from(result.current.is_day).icon(
-            super::Provider::WeatherAPI("".to_string()),
-            result.current.condition.code,
-        );
+        let icon = TimeOfDay::from(result.current.is_day)
+            .icon(super::Provider::WeatherAPI, result.current.condition.code);
 
         Self {
             temp_c: result.current.temp_c,

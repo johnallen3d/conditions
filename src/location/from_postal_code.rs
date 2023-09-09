@@ -80,10 +80,12 @@ impl Client {
 }
 
 impl crate::api::Fetchable<Response, Location> for Client {
-    const URL: &'static str = "https://nominatim.openstreetmap.org/search.php";
+    fn url(&self) -> &'static str {
+        "https://nominatim.openstreetmap.org/search.php"
+    }
 
     fn fetch(&self) -> eyre::Result<Location> {
-        ureq::get(Self::URL)
+        ureq::get(self.url())
             .query_pairs(self.query_pairs())
             .call()
             .map_err(|_| eyre::eyre!("unknown error"))

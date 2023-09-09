@@ -1,6 +1,5 @@
 use std::fmt;
 
-use eyre::WrapErr;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -14,26 +13,6 @@ pub enum ParseCoordinatesError {
     InvalidFormat(String),
     #[error("provided postal code was not found")]
     UnknownLocation(String),
-}
-
-pub trait HttpClient<T, U>
-where
-    for<'de> T: Deserialize<'de>,
-    U: From<T>,
-{
-    fn fetch(&self) -> eyre::Result<U> {
-        ureq::get(self.url())
-            .query_pairs(self.query_pairs())
-            .call()
-            .map_err(|_| eyre::eyre!("unknown error"))?
-            .into_json::<T>()
-            .wrap_err(format!("error parsing response from: {}", self.url()))
-            .map(U::from)
-    }
-
-    fn url(&self) -> &str;
-
-    fn query_pairs(&self) -> Vec<(&str, &str)>;
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Deserialize, Serialize)]

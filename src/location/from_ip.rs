@@ -43,5 +43,7 @@ impl Client {
 }
 
 impl crate::api::Fetchable<Response, Location> for Client {
-    const URL: &'static str = "https://ipinfo.io/json";
+    fn url(&self) -> &'static str {
+        "https://ipinfo.io/json"
+    }
 }
