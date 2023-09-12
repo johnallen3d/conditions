@@ -1,4 +1,5 @@
 # Conditions
+![Build Status](https://github.com/johnallen3d/conditions/actions/workflows/ci.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/johnallen3d/conditions/badge.svg?branch=feature/track-coverage)](https://coveralls.io/github/johnallen3d/conditions?branch=feature/track-coverage)
 
 A command line tool for getting the weather conditions at the current location.
 
