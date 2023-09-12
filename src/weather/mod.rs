@@ -61,3 +61,14 @@ impl CurrentConditions {
         Err(eyre::eyre!("no weather providers succeeded"))
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn it_converts_provider_to_string() {
+        assert_eq!(Provider::WeatherAPI.to_string(), "WeatherAPI");
+        assert_eq!(Provider::OpenMeteo.to_string(), "OpenMeteo");
+    }
+}

@@ -9,8 +9,8 @@ use crate::api::Fetchable;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum ParseCoordinatesError {
-    #[error("provided string was not in the format")]
-    InvalidFormat(String),
+    // #[error("provided string was not in the format")]
+    // InvalidFormat(String),
     #[error("provided postal code was not found")]
     UnknownLocation(String),
 }
@@ -35,7 +35,7 @@ impl fmt::Display for Location {
 
 pub fn get(region: Option<&str>) -> eyre::Result<Location> {
     if region.is_some() {
-        from_postal_code::Client::new(region)?.fetch()
+        from_postal_code::Client::new(region.unwrap())?.fetch()
     } else {
         from_ip::Client::new().fetch()
     }

@@ -44,29 +44,26 @@ impl From<Response> for Location {
     }
 }
 
+#[derive(Debug)]
 pub struct Client {
     query: Vec<(String, String)>,
 }
 
 impl Client {
-    pub fn new(region: Option<&str>) -> eyre::Result<Self> {
+    pub fn new(region: &str) -> eyre::Result<Self> {
         let (postal_code, country) =
-            region.unwrap().split_once(',').ok_or_else(|| {
-                eyre::eyre!(ParseCoordinatesError::InvalidFormat(
+            region.split_once(',').ok_or_else(|| {
+                eyre::eyre!(
                     "missing comma or text before/after comma".to_string(),
-                ))
+                )
             })?;
 
         if postal_code.is_empty() {
-            Err(eyre::eyre!(ParseCoordinatesError::InvalidFormat(
-                "missing postal code".to_string()
-            )))?;
+            return Err(eyre::eyre!("missing postal code".to_string()));
         }
 
         if country.is_empty() {
-            Err(eyre::eyre!(ParseCoordinatesError::InvalidFormat(
-                "missing country".to_string()
-            )))?;
+            return Err(eyre::eyre!("missing country".to_string()));
         }
 
         Ok(Self {
@@ -104,5 +101,73 @@ impl crate::api::Fetchable<Response, Location> for Client {
 
     fn query(&self) -> Option<&Vec<(String, String)>> {
         Some(&self.query)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_location_from() {
+        let lat = "35.12345";
+        let lon = "-80.54321";
+        let name = "10001";
+        let loc = format!("{},{}", lat, lon);
+
+        let response = Response {
+            lat: lat.to_string(),
+            lon: lon.to_string(),
+            name: name.to_string(),
+        };
+
+        let location = Location::from(response);
+
+        assert_eq!(location.loc, loc);
+        assert_eq!(location.latitude, lat);
+        assert_eq!(location.longitude, lon);
+        assert_eq!(location.postal_code, name);
+    }
+
+    #[test]
+    fn test_client_new_valid() {
+        let result = Client::new("10001,US").unwrap();
+        let query = vec![
+            ("format".to_string(), "json".to_string()),
+            ("postalcode".to_string(), "10001".to_string()),
+            ("country".to_string(), "US".to_string()),
+        ];
+
+        assert_eq!(result.query, query);
+    }
+
+    #[test]
+    fn test_client_new_invalid_format() {
+        let result = Client::new("12345");
+
+        assert!(result.is_err());
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("missing comma or text before/after comma"));
+    }
+
+    #[test]
+    fn test_client_new_missing_postal_code() {
+        let result = Client::new(",CA");
+
+        assert!(result.is_err());
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("missing postal code"));
+    }
+
+    #[test]
+    fn test_client_new_missing_country() {
+        let result = Client::new("12345,");
+
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("missing country"));
     }
 }

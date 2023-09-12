@@ -98,3 +98,45 @@ impl From<Response> for CurrentConditions {
         }
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn it_creates_client_with_query() {
+        let config = Config {
+            weatherapi_token: Some("token123".to_string()),
+            ..Default::default()
+        };
+        let location = Location {
+            loc: "loc_string".to_string(),
+            ..Default::default()
+        };
+        let client = Client::new(&config, &location);
+
+        assert_eq!(
+            client.query,
+            vec![
+                ("key".to_string(), "token123".to_string()),
+                ("q".to_string(), "loc_string".to_string())
+            ]
+        );
+    }
+
+    #[test]
+    fn test_weatherapi_from() {
+        let response = Response {
+            current: WeatherAPIResultCurrent {
+                condition: WeatherAPIResultCondition { code: 1087 },
+                temp_c: 10.0,
+                temp_f: 50.0,
+                is_day: 0,
+            },
+        };
+        let conditions = CurrentConditions::from(response);
+        assert_eq!(conditions.temp_c, 10.0);
+        assert_eq!(conditions.temp_f, 50.0);
+        assert_eq!(conditions.icon, "".to_string());
+    }
+}

@@ -23,6 +23,7 @@ pub struct Response {
 
 impl From<Response> for Location {
     fn from(response: Response) -> Self {
+        // could use error handling here but `loc` is coming from ipinfo.io
         let (lat, lon) = response.loc.split_once(',').unwrap();
 
         Self {
@@ -45,5 +46,30 @@ impl Client {
 impl crate::api::Fetchable<Response, Location> for Client {
     fn url(&self) -> &'static str {
         "https://ipinfo.io/json"
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_location_from() {
+        let lat = "35.12345";
+        let lon = "-80.54321";
+        let postal_code = "10001";
+        let loc = format!("{},{}", lat, lon);
+
+        let response = Response {
+            loc: loc.to_string(),
+            postal: postal_code.to_string(),
+        };
+
+        let location = Location::from(response);
+
+        assert_eq!(location.loc, loc);
+        assert_eq!(location.latitude, lat);
+        assert_eq!(location.longitude, lon);
+        assert_eq!(location.postal_code, postal_code);
     }
 }
