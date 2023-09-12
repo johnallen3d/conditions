@@ -145,9 +145,7 @@ lazy_static! {
         m.insert(1282, ""); // Moderate or heavy snow with thunder/395
         m
     };
-}
 
-lazy_static! {
     static ref OPEN_METEO_DAY_ICONS: HashMap<i32, &'static str> = {
         let mut m = HashMap::new();
         m.insert(0, " "); // Clear sky
@@ -180,9 +178,7 @@ lazy_static! {
         m.insert(99, " "); // Thunderstorm with slight and heavy hail
         m
     };
-}
 
-lazy_static! {
     static ref OPEN_METEO_NIGHT_ICONS: HashMap<i32, &'static str> = {
         let mut m = HashMap::new();
         m.insert(0, ""); // Clear sky
@@ -217,25 +213,46 @@ lazy_static! {
     };
 }
 
-#[test]
-fn valid_code_for_day() {
-    let icon = TimeOfDay::Day.icon(crate::weather::Provider::WeatherAPI, 1006);
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    assert_eq!(icon, " ".to_string());
-}
+    #[test]
+    fn it_converts_1_to_day() {
+        assert_eq!(TimeOfDay::from(1), TimeOfDay::Day);
+    }
 
-#[test]
-fn valid_code_for_night() {
-    let icon =
-        TimeOfDay::Night.icon(crate::weather::Provider::WeatherAPI, 1195);
+    #[test]
+    fn it_converts_0_to_night() {
+        assert_eq!(TimeOfDay::from(0), TimeOfDay::Night);
+    }
 
-    assert_eq!(icon, "".to_string());
-}
+    #[test]
+    fn it_converts_any_other_value_to_night() {
+        assert_eq!(TimeOfDay::from(42), TimeOfDay::Night);
+    }
 
-#[test]
-fn invalid_code_for() {
-    let icon =
-        TimeOfDay::Night.icon(crate::weather::Provider::WeatherAPI, 9999);
+    #[test]
+    fn valid_code_for_day() {
+        let icon =
+            TimeOfDay::Day.icon(crate::weather::Provider::WeatherAPI, 1006);
 
-    assert_eq!(icon, "?".to_string());
+        assert_eq!(icon, " ".to_string());
+    }
+
+    #[test]
+    fn valid_code_for_night() {
+        let icon =
+            TimeOfDay::Night.icon(crate::weather::Provider::OpenMeteo, 71);
+
+        assert_eq!(icon, "".to_string());
+    }
+
+    #[test]
+    fn invalid_code_for() {
+        let icon =
+            TimeOfDay::Night.icon(crate::weather::Provider::WeatherAPI, 9999);
+
+        assert_eq!(icon, "?".to_string());
+    }
 }

@@ -20,7 +20,7 @@ pub fn run() -> eyre::Result<String> {
             ConfigSubcommand::View => Config::view()?,
         },
         Command::Current => {
-            conditions::Conditions::new(Config::load()?)?.fetch()?
+            conditions::Conditions::new(Config::load()?).fetch()?
         }
         Command::Location(cmd) => match &cmd.command {
             LocationSubcommand::Set(input) => {
@@ -51,14 +51,4 @@ pub fn run() -> eyre::Result<String> {
     };
 
     Ok(result)
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::config::Config;
-
-    #[test]
-    fn test_from() {
-        println!("{}", Config::load().unwrap().unit);
-    }
 }

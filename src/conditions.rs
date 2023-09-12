@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-use crate::{config::Config, weather::CurrentConditions};
+use crate::{args::Unit, config::Config, weather::CurrentConditions};
 
 #[derive(Debug, Serialize)]
 struct Output {
@@ -8,30 +8,13 @@ struct Output {
     icon: String,
 }
 
-impl From<CurrentConditions> for Output {
-    fn from(conditions: CurrentConditions) -> Self {
-        let temp = match Config::load() {
-            Ok(config) => match config.unit.as_char() {
-                'c' => conditions.temp_c,
-                _ => conditions.temp_f,
-            },
-            Err(_) => conditions.temp_f,
-        };
-
-        Self {
-            temp: temp as i32,
-            icon: conditions.icon,
-        }
-    }
-}
-
 pub struct Conditions {
     config: Config,
 }
 
 impl Conditions {
-    pub fn new(config: Config) -> eyre::Result<Self> {
-        Ok(Self { config })
+    pub fn new(config: Config) -> Self {
+        Self { config }
     }
 
     /// Fetch the current weather conditions given supplied configuration.
@@ -43,8 +26,42 @@ impl Conditions {
     pub fn fetch(&self) -> eyre::Result<String> {
         let location = self.config.get_location()?;
         let conditions = CurrentConditions::get(&self.config, &location)?;
-        let output = Output::from(conditions);
+        let output = self.to_output(conditions);
 
         Ok(ureq::serde_json::to_string(&output)?)
+    }
+
+    fn to_output(&self, conditions: CurrentConditions) -> Output {
+        let temp = match self.config.unit {
+            Unit::C => conditions.temp_c,
+            _ => conditions.temp_f,
+        };
+
+        Output {
+            temp: temp as i32,
+            icon: conditions.icon,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_conditions_to_output() {
+        let config = Config {
+            unit: Unit::C,
+            ..Default::default()
+        };
+        let conditions = CurrentConditions {
+            temp_c: 10.0,
+            temp_f: 50.0,
+            icon: "icon".to_string(),
+        };
+        let output = Conditions::new(config).to_output(conditions);
+
+        assert_eq!(output.temp, 10);
+        assert_eq!(output.icon, "icon");
     }
 }

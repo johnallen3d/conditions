@@ -1,9 +1,7 @@
 use serde::Deserialize;
 
 use super::{CurrentConditions, Provider};
-use crate::icons::TimeOfDay;
-use crate::location::Location;
-use crate::Config;
+use crate::{icons::TimeOfDay, location::Location, Config};
 
 // {
 //   "latitude": 35.159126,
@@ -74,5 +72,47 @@ impl From<Response> for CurrentConditions {
             temp_f: result.current_weather.temperature,
             icon,
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::args::Unit;
+
+    #[test]
+    fn test_client_new() {
+        let config = Config {
+            unit: Unit::F,
+            ..Default::default()
+        };
+        let location = Location::default();
+        let client = Client::new(&config, &location);
+
+        assert_eq!(client.query.len(), 4);
+        assert_eq!(client.query[0].0, "current_weather");
+        assert_eq!(client.query[0].1, "true");
+        assert_eq!(client.query[1].0, "temperature_unit");
+        assert_eq!(client.query[1].1, "fahrenheit");
+        assert_eq!(client.query[2].0, "latitude");
+        assert_eq!(client.query[2].1, location.latitude);
+        assert_eq!(client.query[3].0, "longitude");
+        assert_eq!(client.query[3].1, location.longitude);
+    }
+
+    #[test]
+    fn it_converts_response_to_current_conditions() {
+        let response = Response {
+            current_weather: CurrentWeather {
+                temperature: 10.0,
+                weathercode: 85,
+                is_day: 1,
+            },
+        };
+        let conditions = CurrentConditions::from(response);
+
+        assert_eq!(conditions.temp_c, 10.0);
+        assert_eq!(conditions.temp_f, 10.0);
+        assert_eq!(conditions.icon, " ");
     }
 }
