@@ -12,24 +12,24 @@ pub struct CurrentConditions {
     pub icon: String,
 }
 
-pub trait WeatherProvider {
+pub trait Provider {
     fn current(&self) -> eyre::Result<CurrentConditions>;
     fn query_pairs(&self) -> Vec<(&str, &str)>;
 }
 
 #[derive(Clone, Debug)]
-pub enum Provider {
+pub enum Source {
     WeatherAPI,
     OpenMeteo,
 }
 
-impl fmt::Display for Provider {
+impl fmt::Display for Source {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let name = match self {
-            Provider::WeatherAPI => "WeatherAPI",
-            Provider::OpenMeteo => "OpenMeteo",
+            Source::WeatherAPI => "WeatherAPI",
+            Source::OpenMeteo => "OpenMeteo",
         };
-        write!(f, "{}", name)
+        write!(f, "{name}")
     }
 }
 
@@ -38,14 +38,14 @@ impl CurrentConditions {
         config: &Config,
         location: &Location,
     ) -> eyre::Result<CurrentConditions> {
-        let providers = vec![Provider::WeatherAPI, Provider::OpenMeteo];
+        let sources = vec![Source::WeatherAPI, Source::OpenMeteo];
 
-        for provider in &providers {
-            let result = match provider {
-                Provider::WeatherAPI => {
+        for source in &sources {
+            let result = match source {
+                Source::WeatherAPI => {
                     weather_api::Client::new(config, location).fetch()
                 }
-                Provider::OpenMeteo => {
+                Source::OpenMeteo => {
                     open_meteo::Client::new(config, location).fetch()
                 }
             };
@@ -53,7 +53,7 @@ impl CurrentConditions {
             match result {
                 Ok(conditions) => return Ok(conditions),
                 Err(_) => {
-                    eprintln!("error fetching weather from: {}", provider)
+                    eprintln!("error fetching weather from: {source}");
                 }
             }
         }
@@ -68,7 +68,7 @@ mod test {
 
     #[test]
     fn it_converts_provider_to_string() {
-        assert_eq!(Provider::WeatherAPI.to_string(), "WeatherAPI");
-        assert_eq!(Provider::OpenMeteo.to_string(), "OpenMeteo");
+        assert_eq!(Source::WeatherAPI.to_string(), "WeatherAPI");
+        assert_eq!(Source::OpenMeteo.to_string(), "OpenMeteo");
     }
 }

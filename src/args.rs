@@ -5,7 +5,7 @@ use serde::{Deserialize, Deserializer, Serialize};
 
 #[derive(Debug, Parser)]
 #[clap(version, about)]
-pub struct ConditionsArgs {
+pub struct Conditions {
     #[clap(subcommand)]
     pub command: Command,
 }
@@ -111,6 +111,7 @@ pub enum Unit {
 }
 
 impl Unit {
+    #[must_use]
     pub fn from_char(unit: char) -> Option<Self> {
         match unit {
             'c' => Some(Self::C),
@@ -119,6 +120,7 @@ impl Unit {
         }
     }
 
+    #[must_use]
     pub fn as_char(&self) -> char {
         match self {
             Unit::C => 'c',
@@ -133,7 +135,7 @@ impl fmt::Display for Unit {
             Unit::C => "celsius",
             Unit::F => "fahrenheit",
         };
-        write!(f, "{}", text)
+        write!(f, "{text}")
     }
 }
 

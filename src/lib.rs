@@ -1,6 +1,11 @@
+#![deny(clippy::pedantic)]
+
 use clap::Parser;
 
-use args::*;
+use args::{
+    Command, Conditions, ConfigSubcommand, LocationSubcommand, UnitSubcommand,
+    WeatherApiKeySubcommand,
+};
 use config::Config;
 
 pub(crate) mod api;
@@ -11,8 +16,22 @@ pub mod icons;
 mod location;
 mod weather;
 
+/// Entry point for running the application logic based on parsed CLI arguments.
+///
+/// # Returns
+///
+/// - `Ok(String)`: A success message or relevant output for the executed command
+/// - `Err(eyre::Error)`: An error if any step in the execution fails.
+///
+/// # Errors
+///
+/// This function will return an error in the following situations:
+///
+/// - Failure to read or write to the config file.
+/// - Failure to fetch weather conditions.
+/// - Failure to manage location, weather API key, or unit settings.
 pub fn run() -> eyre::Result<String> {
-    let args = ConditionsArgs::parse();
+    let args = Conditions::parse();
 
     let result = match &args.command {
         Command::Config(cmd) => match &cmd.command {
@@ -38,7 +57,7 @@ pub fn run() -> eyre::Result<String> {
             WeatherApiKeySubcommand::View => {
                 let token = Config::load()?.get_weatherapi_token()?;
 
-                format!("token stored as: {}", token)
+                format!("token stored as: {token}")
             }
             WeatherApiKeySubcommand::Unset => Config::unset_weatherapi_token()?,
         },
