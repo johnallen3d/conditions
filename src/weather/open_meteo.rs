@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-use super::{CurrentConditions, Provider};
+use super::{CurrentConditions, Source};
 use crate::{icons::TimeOfDay, location::Location, Config};
 
 // {
@@ -65,7 +65,7 @@ impl crate::api::Fetchable<Response, CurrentConditions> for Client {
 impl From<Response> for CurrentConditions {
     fn from(result: Response) -> Self {
         let icon = TimeOfDay::from(result.current_weather.is_day)
-            .icon(Provider::OpenMeteo, result.current_weather.weathercode);
+            .icon(&Source::OpenMeteo, result.current_weather.weathercode);
 
         Self {
             temp_c: result.current_weather.temperature,
@@ -111,8 +111,8 @@ mod test {
         };
         let conditions = CurrentConditions::from(response);
 
-        assert_eq!(conditions.temp_c, 10.0);
-        assert_eq!(conditions.temp_f, 10.0);
+        assert!((conditions.temp_c - 10.0).abs() < f32::EPSILON);
+        assert!((conditions.temp_f - 10.0).abs() < f32::EPSILON);
         assert_eq!(conditions.icon, " ");
     }
 }

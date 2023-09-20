@@ -34,13 +34,15 @@ impl Conditions {
     fn to_output(&self, conditions: CurrentConditions) -> Output {
         let temp = match self.config.unit {
             Unit::C => conditions.temp_c,
-            _ => conditions.temp_f,
+            Unit::F => conditions.temp_f,
         };
 
-        Output {
-            temp: temp as i32,
-            icon: conditions.icon,
-        }
+        #[allow(clippy::cast_possible_truncation)]
+        let temp = temp as i32;
+
+        let icon = conditions.icon;
+
+        Output { temp, icon }
     }
 }
 

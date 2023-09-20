@@ -1,7 +1,7 @@
 use lazy_static::lazy_static;
 use std::collections::HashMap;
 
-use crate::weather::Provider;
+use crate::weather::Source;
 
 #[derive(Debug, PartialEq)]
 pub enum TimeOfDay {
@@ -19,23 +19,20 @@ impl From<u8> for TimeOfDay {
 }
 
 impl TimeOfDay {
-    pub fn icon(
-        &self,
-        provider: crate::weather::Provider,
-        code: i32,
-    ) -> String {
+    #[must_use]
+    pub fn icon(&self, provider: &crate::weather::Source, code: i32) -> String {
         let icons: &HashMap<i32, &'static str> = match provider {
-            Provider::WeatherAPI => match self {
+            Source::WeatherAPI => match self {
                 TimeOfDay::Day => &WEATHERAPI_DAY_ICONS,
                 TimeOfDay::Night => &WEATHERAPI_NIGHT_ICONS,
             },
-            Provider::OpenMeteo => match self {
+            Source::OpenMeteo => match self {
                 TimeOfDay::Day => &OPEN_METEO_DAY_ICONS,
                 TimeOfDay::Night => &OPEN_METEO_NIGHT_ICONS,
             },
         };
 
-        icons.get(&code).unwrap_or(&"?").to_string()
+        (*icons.get(&code).unwrap_or(&"?")).to_string()
     }
 }
 
@@ -235,7 +232,7 @@ mod tests {
     #[test]
     fn valid_code_for_day() {
         let icon =
-            TimeOfDay::Day.icon(crate::weather::Provider::WeatherAPI, 1006);
+            TimeOfDay::Day.icon(&crate::weather::Source::WeatherAPI, 1006);
 
         assert_eq!(icon, " ".to_string());
     }
@@ -243,7 +240,7 @@ mod tests {
     #[test]
     fn valid_code_for_night() {
         let icon =
-            TimeOfDay::Night.icon(crate::weather::Provider::OpenMeteo, 71);
+            TimeOfDay::Night.icon(&crate::weather::Source::OpenMeteo, 71);
 
         assert_eq!(icon, "".to_string());
     }
@@ -251,7 +248,7 @@ mod tests {
     #[test]
     fn invalid_code_for() {
         let icon =
-            TimeOfDay::Night.icon(crate::weather::Provider::WeatherAPI, 9999);
+            TimeOfDay::Night.icon(&crate::weather::Source::WeatherAPI, 9999);
 
         assert_eq!(icon, "?".to_string());
     }

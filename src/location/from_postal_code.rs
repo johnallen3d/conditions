@@ -96,7 +96,7 @@ impl crate::api::Fetchable<Response, Location> for Client {
                 )
             })
             .wrap_err("error getting the first element from response")
-            .map(|location| Location::from(location.to_owned()))
+            .map(|location| Location::from(location.clone()))
     }
 
     fn query(&self) -> Option<&Vec<(String, String)>> {
@@ -111,13 +111,13 @@ mod tests {
     #[test]
     fn test_location_from() {
         let lat = "35.12345";
-        let lon = "-80.54321";
+        let long = "-80.54321";
         let name = "10001";
-        let loc = format!("{},{}", lat, lon);
+        let loc = format!("{lat},{long}");
 
         let response = Response {
             lat: lat.to_string(),
-            lon: lon.to_string(),
+            lon: long.to_string(),
             name: name.to_string(),
         };
 
@@ -125,7 +125,7 @@ mod tests {
 
         assert_eq!(location.loc, loc);
         assert_eq!(location.latitude, lat);
-        assert_eq!(location.longitude, lon);
+        assert_eq!(location.longitude, long);
         assert_eq!(location.postal_code, name);
     }
 

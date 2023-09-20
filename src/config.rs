@@ -86,7 +86,7 @@ impl Config {
         config.unit = unit;
         config.store()?;
 
-        Ok(format!("unit stored as: {}", unit))
+        Ok(format!("unit stored as: {unit}"))
     }
 
     pub fn get_weatherapi_token(&self) -> eyre::Result<String> {

@@ -56,9 +56,9 @@ mod tests {
     #[test]
     fn test_location_from() {
         let lat = "35.12345";
-        let lon = "-80.54321";
+        let long = "-80.54321";
         let postal_code = "10001";
-        let loc = format!("{},{}", lat, lon);
+        let loc = format!("{lat},{long}");
 
         let response = Response {
             loc: loc.to_string(),
@@ -69,7 +69,7 @@ mod tests {
 
         assert_eq!(location.loc, loc);
         assert_eq!(location.latitude, lat);
-        assert_eq!(location.longitude, lon);
+        assert_eq!(location.longitude, long);
         assert_eq!(location.postal_code, postal_code);
     }
 }

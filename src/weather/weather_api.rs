@@ -58,7 +58,8 @@ impl std::convert::From<std::io::Error> for FetchConditionsError {
     }
 }
 
-/// PrasedWeather represented as JSON response
+/// Response represented as JSON response
+/// ```json
 /// {
 ///   "current": {
 ///     "condition": {
@@ -68,6 +69,7 @@ impl std::convert::From<std::io::Error> for FetchConditionsError {
 ///     "is_day": u8
 ///   }
 /// }
+/// ```
 #[derive(Debug, Deserialize)]
 pub struct Response {
     current: WeatherAPIResultCurrent,
@@ -89,7 +91,7 @@ struct WeatherAPIResultCondition {
 impl From<Response> for CurrentConditions {
     fn from(result: Response) -> Self {
         let icon = TimeOfDay::from(result.current.is_day)
-            .icon(super::Provider::WeatherAPI, result.current.condition.code);
+            .icon(&super::Source::WeatherAPI, result.current.condition.code);
 
         Self {
             temp_c: result.current.temp_c,
@@ -135,8 +137,8 @@ mod test {
             },
         };
         let conditions = CurrentConditions::from(response);
-        assert_eq!(conditions.temp_c, 10.0);
-        assert_eq!(conditions.temp_f, 50.0);
+        assert!((conditions.temp_c - 10.0).abs() < f32::EPSILON);
+        assert!((conditions.temp_f - 50.0).abs() < f32::EPSILON);
         assert_eq!(conditions.icon, "".to_string());
     }
 }
