@@ -50,9 +50,8 @@ impl CurrentConditions {
                 }
             };
 
-            match result {
-                Ok(conditions) => return Ok(conditions),
-                Err(err) => eprintln!("{err}: {source}"),
+            if result.is_ok() {
+                return result;
             }
         }
 
