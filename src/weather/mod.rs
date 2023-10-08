@@ -52,9 +52,7 @@ impl CurrentConditions {
 
             match result {
                 Ok(conditions) => return Ok(conditions),
-                Err(_) => {
-                    eprintln!("error fetching weather from: {source}");
-                }
+                Err(err) => eprintln!("{err}: {source}"),
             }
         }
 

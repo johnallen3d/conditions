@@ -1,7 +1,8 @@
 use serde::Serialize;
 
 use crate::{
-    args::Unit, cache::Cache, config::Config, weather::CurrentConditions,
+    args::Unit, cache::Cache, config::Config, location,
+    weather::CurrentConditions,
 };
 
 #[derive(Debug, Serialize)]
@@ -12,11 +13,12 @@ struct Output {
 
 pub struct Conditions {
     config: Config,
+    region: Option<String>,
 }
 
 impl Conditions {
-    pub fn new(config: Config) -> Self {
-        Self { config }
+    pub fn new(config: Config, region: Option<String>) -> Self {
+        Self { config, region }
     }
 
     /// Fetch the current weather conditions given supplied configuration.
@@ -26,7 +28,12 @@ impl Conditions {
     /// - compose output structure
     /// - convert output to JSON and return
     pub async fn fetch(&mut self, cache: &mut Cache) -> eyre::Result<String> {
-        let location = self.config.get_location(cache).await?;
+        let location = if let Some(region) = &self.region {
+            location::get(cache, Some(region)).await?
+        } else {
+            self.config.get_location(cache).await?
+        };
+
         let conditions = CurrentConditions::get(&self.config, &location)?;
         let output = self.to_output(conditions);
 
@@ -64,7 +71,7 @@ mod tests {
             icon: "icon".to_string(),
         };
 
-        let output = Conditions::new(config).to_output(conditions);
+        let output = Conditions::new(config, None).to_output(conditions);
 
         assert_eq!(output.temp, 10);
         assert_eq!(output.icon, "icon");
