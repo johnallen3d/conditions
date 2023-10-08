@@ -14,8 +14,8 @@ pub struct Conditions {
 pub enum Command {
     /// View configuration information
     Config(ConfigCommand),
-    /// Get the current weather conditions
-    Current,
+    /// Get the current weather conditions (optional provide location)
+    Current { region: Option<String> },
     /// Location conditions apply to
     Location(LocationCommand),
     /// weatherapi.com api-key

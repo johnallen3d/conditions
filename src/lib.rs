@@ -41,10 +41,10 @@ pub async fn run() -> eyre::Result<String> {
             ConfigSubcommand::Path => Config::location()?,
             ConfigSubcommand::View => Config::view()?,
         },
-        Command::Current => {
+        Command::Current { region } => {
             let (config, mut cache) = init().await?;
 
-            conditions::Conditions::new(config)
+            conditions::Conditions::new(config, region.clone())
                 .fetch(&mut cache)
                 .await?
         }
