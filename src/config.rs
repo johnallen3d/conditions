@@ -72,11 +72,6 @@ impl Config {
             None => {
                 let inferred = location::get(cache, None).await?;
 
-                eprintln!(
-                    "location not set, inferred postal code: {}",
-                    inferred.postal_code
-                );
-
                 Ok(inferred)
             }
         }

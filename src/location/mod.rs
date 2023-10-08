@@ -67,18 +67,13 @@ pub async fn get(
         return Ok(location);
     };
 
-    if let Some(location) = cache.get(region).await? {
-        eprintln!(
-            "location read from cache, postal code: {}",
-            location.postal_code
-        );
-
-        Ok(location)
-    } else {
+    let Some(location) = cache.get(region).await? else {
         let location = from_postal_code::Client::new(region)?.fetch()?;
 
         cache.set(&location).await?;
 
-        Ok(location)
-    }
+        return Ok(location);
+    };
+
+    Ok(location)
 }
