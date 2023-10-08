@@ -53,9 +53,8 @@ impl Client {
     pub fn new(region: &str) -> eyre::Result<Self> {
         let (postal_code, country) =
             region.split_once(',').ok_or_else(|| {
-                eyre::eyre!(
-                    "missing comma or text before/after comma".to_string(),
-                )
+                eyre::eyre!("invalid location, expect [POSTAL_CODE, COUNTRY]"
+                    .to_string(),)
             })?;
 
         if postal_code.is_empty() {
@@ -149,7 +148,7 @@ mod tests {
         assert!(result
             .unwrap_err()
             .to_string()
-            .contains("missing comma or text before/after comma"));
+            .contains("invalid location, expect [POSTAL_CODE, COUNTRY]"));
     }
 
     #[test]

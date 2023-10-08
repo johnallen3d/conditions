@@ -4,8 +4,11 @@ use eyre::WrapErr;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::args::Unit;
-use crate::location::{self, Location};
+use crate::{
+    args::Unit,
+    cache::Cache,
+    location::{self, Location},
+};
 
 #[derive(Error, Debug)]
 pub enum ParseConfigError {
@@ -34,9 +37,24 @@ impl Config {
             .wrap_err("error loading config")
     }
 
-    pub fn path() -> eyre::Result<String> {
+    fn path() -> eyre::Result<std::path::PathBuf> {
         let path = confy::get_configuration_file_path(APP_NAME, CONFIG_NAME)
             .map_err(ParseConfigError::Loading)?;
+
+        Ok(path)
+    }
+
+    pub fn location() -> eyre::Result<String> {
+        Ok(Config::path()?.display().to_string())
+    }
+
+    pub fn cache_path() -> eyre::Result<String> {
+        let mut path = Config::path()?
+            .parent()
+            .ok_or(eyre::eyre!("error determinig config path"))?
+            .to_path_buf();
+
+        path.push("cache.db");
 
         Ok(path.display().to_string())
     }
@@ -45,11 +63,14 @@ impl Config {
         Ok(format!("{}", Self::load()?))
     }
 
-    pub fn get_location(&self) -> eyre::Result<Location> {
+    pub async fn get_location(
+        &mut self,
+        cache: &mut Cache,
+    ) -> eyre::Result<Location> {
         match &self.location {
             Some(location) => Ok(location.clone()),
             None => {
-                let inferred = location::get(None)?;
+                let inferred = location::get(cache, None).await?;
 
                 eprintln!(
                     "location not set, inferred postal code: {}",
@@ -61,9 +82,13 @@ impl Config {
         }
     }
 
-    pub fn set_location(region: &str) -> eyre::Result<String> {
+    pub async fn set_location(
+        &mut self,
+        cache: &mut Cache,
+        region: &str,
+    ) -> eyre::Result<String> {
         let mut config = Self::load()?;
-        let location = location::get(Some(region))?;
+        let location = location::get(cache, Some(region)).await?;
 
         config.location = Some(location);
         config.store()?;

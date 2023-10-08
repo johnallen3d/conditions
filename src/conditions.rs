@@ -1,6 +1,8 @@
 use serde::Serialize;
 
-use crate::{args::Unit, config::Config, weather::CurrentConditions};
+use crate::{
+    args::Unit, cache::Cache, config::Config, weather::CurrentConditions,
+};
 
 #[derive(Debug, Serialize)]
 struct Output {
@@ -23,8 +25,8 @@ impl Conditions {
     /// - retrieve wather conditions from weather provider(s) for location
     /// - compose output structure
     /// - convert output to JSON and return
-    pub fn fetch(&self) -> eyre::Result<String> {
-        let location = self.config.get_location()?;
+    pub async fn fetch(&mut self, cache: &mut Cache) -> eyre::Result<String> {
+        let location = self.config.get_location(cache).await?;
         let conditions = CurrentConditions::get(&self.config, &location)?;
         let output = self.to_output(conditions);
 
@@ -50,8 +52,8 @@ impl Conditions {
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_conditions_to_output() {
+    #[tokio::test]
+    async fn test_conditions_to_output() {
         let config = Config {
             unit: Unit::C,
             ..Default::default()
@@ -61,6 +63,7 @@ mod tests {
             temp_f: 50.0,
             icon: "icon".to_string(),
         };
+
         let output = Conditions::new(config).to_output(conditions);
 
         assert_eq!(output.temp, 10);

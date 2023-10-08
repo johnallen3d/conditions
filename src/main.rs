@@ -1,9 +1,10 @@
 #![deny(clippy::pedantic)]
 
-fn main() {
+#[tokio::main(flavor = "current_thread")]
+async fn main() {
     env_logger::init();
 
-    match conditions::run() {
+    match conditions::run().await {
         Ok(result) => println!("{result}"),
         Err(err) => {
             // for user

@@ -6,10 +6,13 @@ use args::{
     Command, Conditions, ConfigSubcommand, LocationSubcommand, UnitSubcommand,
     WeatherApiKeySubcommand,
 };
+
+use cache::Cache;
 use config::Config;
 
 pub(crate) mod api;
 pub mod args;
+mod cache;
 mod conditions;
 mod config;
 pub mod icons;
@@ -30,23 +33,31 @@ mod weather;
 /// - Failure to read or write to the config file.
 /// - Failure to fetch weather conditions.
 /// - Failure to manage location, weather API key, or unit settings.
-pub fn run() -> eyre::Result<String> {
+pub async fn run() -> eyre::Result<String> {
     let args = Conditions::parse();
 
     let result = match &args.command {
         Command::Config(cmd) => match &cmd.command {
-            ConfigSubcommand::Path => Config::path()?,
+            ConfigSubcommand::Path => Config::location()?,
             ConfigSubcommand::View => Config::view()?,
         },
         Command::Current => {
-            conditions::Conditions::new(Config::load()?).fetch()?
+            let (config, mut cache) = init().await?;
+
+            conditions::Conditions::new(config)
+                .fetch(&mut cache)
+                .await?
         }
         Command::Location(cmd) => match &cmd.command {
             LocationSubcommand::Set(input) => {
-                Config::set_location(&input.region)?
+                let (mut config, mut cache) = init().await?;
+
+                config.set_location(&mut cache, &input.region).await?
             }
             LocationSubcommand::View => {
-                Config::load()?.get_location()?.to_string()
+                let (mut config, mut cache) = init().await?;
+
+                config.get_location(&mut cache).await?.to_string()
             }
             LocationSubcommand::Unset => Config::unset_location()?,
         },
@@ -70,4 +81,11 @@ pub fn run() -> eyre::Result<String> {
     };
 
     Ok(result)
+}
+
+async fn init() -> eyre::Result<(Config, Cache)> {
+    let config = Config::load()?;
+    let cache = Cache::new(Some(Config::cache_path()?)).await?;
+
+    Ok((config, cache))
 }
