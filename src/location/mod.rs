@@ -1,8 +1,10 @@
 use std::fmt;
 
 use serde::{Deserialize, Serialize};
+use sqlx::FromRow;
 use thiserror::Error;
 
+use crate::cache::Cache;
 pub(crate) mod from_ip;
 pub(crate) mod from_postal_code;
 use crate::api::Fetchable;
@@ -15,7 +17,7 @@ pub enum ParseCoordinatesError {
     UnknownLocation(String),
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Deserialize, Serialize)]
+#[derive(FromRow, Clone, Debug, Default, PartialEq, Deserialize, Serialize)]
 pub struct Location {
     pub loc: String,
     pub latitude: String,
@@ -33,10 +35,50 @@ impl fmt::Display for Location {
     }
 }
 
-pub fn get(region: Option<&str>) -> eyre::Result<Location> {
-    if region.is_some() {
-        from_postal_code::Client::new(region.unwrap())?.fetch()
+/// Fetches the current location based on either a specified region or the client's IP address.
+///
+/// This function has two main branches of logic:
+///
+/// 1. If a `region` is provided:
+///    - It first checks the cache to see if the location data for the specified region is already available.
+///    - If cached, it logs the cache hit and returns the cached location data.
+///    - If not cached, it fetches the location data based on the region's postal code, caches the new data, and returns it.
+///
+/// 2. If no `region` is provided:
+///    - It fetches the location data based on the client's IP address, caches the new data, and returns it.
+///
+/// # Arguments
+///
+/// - `cache`: A mutable reference to a `Cache` object for caching location data.
+/// - `region`: An `Option<&str>` representing a region (as a postal code). If `None`, the function will use the client's IP address to fetch location data.
+///
+/// # Returns
+///
+/// - A `Result` with the `Location` object, or an `eyre::Error` if any step of the process fails.
+pub async fn get(
+    cache: &mut Cache,
+    region: Option<&str>,
+) -> eyre::Result<Location> {
+    let Some(region) = region else {
+        let location = from_ip::Client::new().fetch()?;
+
+        cache.set(&location).await?;
+
+        return Ok(location);
+    };
+
+    if let Some(location) = cache.get(region).await? {
+        eprintln!(
+            "location read from cache, postal code: {}",
+            location.postal_code
+        );
+
+        Ok(location)
     } else {
-        from_ip::Client::new().fetch()
+        let location = from_postal_code::Client::new(region)?.fetch()?;
+
+        cache.set(&location).await?;
+
+        Ok(location)
     }
 }
