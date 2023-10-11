@@ -60,7 +60,11 @@ conditions location set "10001, usa"
 
 ### SketchyBar
 
-Here's how I'm using this with SketchyBar.
+[SketchyBar](https://github.com/FelixKratz/SketchyBar) is a very customizable bar app for macOS that is deliberately light on resource usage (written in C vs more common WebView approach). Widgets in SketchyBar are refreshed (if need be) via "plugins" (typically shell scripts).
+
+#### Manual
+
+Here's how I'm using `conditions` with SketchyBar in the more traditional plugin approach.
 
 ```bash
 #!/bin/bash
@@ -73,6 +77,44 @@ sketchybar -m \
   --set weather_logo icon="${icon}" \
   --set weather label="${temp}°F"
 ```
+
+#### Direct Integration
+
+Alternatively `conditions` can directly update the running instance of SketchyBar without making calls from a shell script using `sketchybar -m`. In order to use this experimental version, the `sketchybar` feature must be enabled on install.
+
+```bash
+cargo install conditions --features sketchybar
+```
+
+Then when setting up a weather widget in `sketchybarrc`, `conditions` can be invoked directly.
+
+```bash
+sketchybar \
+  --add item weather right \
+  update_freq=1800 \
+  icon.drawing=off \
+  script="$HOME/.cargo/bin/conditions current --icon="
+
+sketchybar \
+  --add item weather_logo right \
+  icon.font="Hack Nerd Font:Regular:14.0" \
+  label.drawing=off \
+```
+
+Note, at this time `conditions` is hard-coded with widgets named `weather` and `weather_logo`:
+
+```rust
+let message = format!(
+    "--set weather_logo icon=\"{}\" --set weather label=\"{}°{}\"",
+    conditions.icon,
+    conditions.temp_f as i32,
+    self.config.unit.as_char().to_ascii_uppercase()
+);
+```
+
+In my bar this results in:
+
+![example SketchyBar](./assets/sketchybar-example.png)
 
 ## Tasks
 
