@@ -26,4 +26,4 @@ sqlx = { version = "0.7", features = ["macros", "runtime-tokio", "sqlite"] }
 tokio = { version = "1.33", features = ["macros"] }
 
 [dev-dependencies]
-tempfile = "3.8.0"
+tempfile = "3.8.1"
