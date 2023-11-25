@@ -4,7 +4,15 @@ on: [push]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        include:
+          - os: macos-latest
+            features: sketchybar
+
+    runs-on: ${{ matrix.os }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -17,8 +25,13 @@ jobs:
       - name: Setup Cache
         uses: Swatinem/rust-cache@v2
 
-      - name: Build crate
+      - if: ${{ !matrix.features }}
+        name: Build crate
         run: cargo build
+
+      - if: ${{ matrix.features }}
+        name: Build crate
+        run: cargo build --features ${{ matrix.features }}
 
       - name: Run tests
         run: cargo test

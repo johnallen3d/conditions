@@ -35,6 +35,10 @@ impl Conditions {
         };
 
         let conditions = CurrentConditions::get(&self.config, &location)?;
+
+        #[cfg(feature = "sketchybar")]
+        self.notify_sketchybar(&conditions)?;
+
         let output = self.to_output(conditions);
 
         Ok(ureq::serde_json::to_string(&output)?)
@@ -52,6 +56,26 @@ impl Conditions {
         let icon = conditions.icon;
 
         Output { temp, icon }
+    }
+
+    #[cfg(feature = "sketchybar")]
+    fn notify_sketchybar(
+        &self,
+        conditions: &CurrentConditions,
+    ) -> eyre::Result<String> {
+        #[allow(clippy::cast_possible_truncation)]
+        // TODO: this shouldn't be hard-code. Consider additional CLI args
+        let message = format!(
+            "--set weather_logo icon=\"{}\" --set weather label=\"{}°{}\"",
+            conditions.icon,
+            conditions.temp_f as i32,
+            self.config.unit.as_char().to_ascii_uppercase()
+        );
+
+        match sketchybar_rs::message(&message) {
+            Ok(_) => Ok(String::new()),
+            Err(err) => Err(eyre::eyre!(err.to_string())),
+        }
     }
 }
 

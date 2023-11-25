@@ -249,6 +249,7 @@ dependencies = [
  "log",
  "rustls",
  "serde",
+ "sketchybar-rs",
  "sqlx",
  "tempfile",
  "thiserror",
@@ -1324,6 +1325,16 @@ checksum = "5e1788eed21689f9cf370582dfc467ef36ed9c707f073528ddafa8d83e3b8500"
 dependencies = [
  "digest",
  "rand_core",
+]
+
+[[package]]
+name = "sketchybar-rs"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c26ccb881a9573154fb6d8a59838d0d136581086c5d92f1005b5763d2325e214"
+dependencies = [
+ "cc",
+ "libc",
 ]
 
 [[package]]

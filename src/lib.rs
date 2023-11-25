@@ -1,5 +1,8 @@
 #![deny(clippy::pedantic)]
 
+#[cfg(feature = "sketchybar")]
+extern crate sketchybar_rs;
+
 use clap::Parser;
 
 use args::{
