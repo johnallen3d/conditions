@@ -23,7 +23,7 @@ impl Cache {
         let mut connection = SqliteConnection::connect(&db_url).await?;
 
         sqlx::query(
-            r#"
+            r"
             CREATE TABLE IF NOT EXISTS cache (
                 postal_code TEXT NOT NULL,
                 loc         TEXT NOT NULL,
@@ -32,7 +32,7 @@ impl Cache {
 
                 UNIQUE(postal_code)
             )
-            "#,
+            ",
         )
         .execute(&mut connection)
         .await?;
@@ -41,7 +41,7 @@ impl Cache {
     }
 
     pub async fn set(&mut self, location: &Location) -> eyre::Result<()> {
-        let query = r#"
+        let query = r"
             INSERT INTO cache (
                postal_code
               ,loc
@@ -60,7 +60,7 @@ impl Cache {
               ,latitude = excluded.latitude
               ,longitude = excluded.longitude
             ;
-        "#;
+        ";
 
         sqlx::query(query)
             .bind(&location.postal_code)
