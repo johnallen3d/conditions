@@ -1,14 +1,15 @@
 use serde::Serialize;
 
 use crate::{
-    args::Unit, cache::Cache, config::Config, location,
-    weather::CurrentConditions,
+    cache::Cache, config::Config, location, weather::CurrentConditions,
 };
 
+use crate::Unit;
+
 #[derive(Debug, Serialize)]
-struct Output {
-    temp: i32,
-    icon: String,
+pub struct Output {
+    pub temp: i32,
+    pub icon: String,
 }
 
 pub struct Conditions {
@@ -17,17 +18,33 @@ pub struct Conditions {
 }
 
 impl Conditions {
+    #[must_use]
     pub fn new(config: Config, region: Option<String>) -> Self {
         Self { config, region }
     }
 
-    /// Fetch the current weather conditions given supplied configuration.
+    /// Fetches current weather conditions based on the provided configuration
+    /// and location.
     ///
-    /// - use configured location or infer location via IP
-    /// - retrieve wather conditions from weather provider(s) for location
-    /// - compose output structure
-    /// - convert output to JSON and return
-    pub async fn fetch(&mut self, cache: &mut Cache) -> eyre::Result<String> {
+    /// # Arguments
+    ///
+    /// * `cache` - A mutable reference to the cache object used for storing
+    ///   location data.
+    ///
+    /// # Returns
+    ///
+    /// Returns a `Result` containing the fetched weather conditions as an
+    /// `Output` struct on success, or an `eyre::Error` on failure.
+    ///
+    /// # Errors
+    ///
+    /// This function can return an `eyre::Error` if any of the following
+    /// conditions are met:
+    ///
+    /// * The location retrieval from the cache fails.
+    /// * The location retrieval from the configuration fails.
+    /// * The retrieval of current weather conditions fails.
+    pub async fn fetch(&mut self, cache: &mut Cache) -> eyre::Result<Output> {
         let location = if let Some(region) = &self.region {
             location::get(cache, Some(region)).await?
         } else {
@@ -37,7 +54,7 @@ impl Conditions {
         let conditions = CurrentConditions::get(&self.config, &location)?;
         let output = self.to_output(conditions);
 
-        Ok(ureq::serde_json::to_string(&output)?)
+        Ok(output)
     }
 
     fn to_output(&self, conditions: CurrentConditions) -> Output {

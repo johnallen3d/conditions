@@ -78,7 +78,7 @@ impl From<Response> for CurrentConditions {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::args::Unit;
+    use crate::Unit;
 
     #[test]
     fn test_client_new() {

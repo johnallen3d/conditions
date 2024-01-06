@@ -111,20 +111,10 @@ pub enum Unit {
 }
 
 impl Unit {
-    #[must_use]
-    pub fn from_char(unit: char) -> Option<Self> {
-        match unit {
-            'c' => Some(Self::C),
-            'f' => Some(Self::F),
-            _ => None,
-        }
-    }
-
-    #[must_use]
-    pub fn as_char(&self) -> char {
+    pub fn to(self) -> conditions::Unit {
         match self {
-            Unit::C => 'c',
-            Unit::F => 'f',
+            Unit::C => conditions::Unit::C,
+            Unit::F => conditions::Unit::F,
         }
     }
 }
