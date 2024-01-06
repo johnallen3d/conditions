@@ -4,8 +4,8 @@ use serde::Deserialize;
 /// The `Fetchable` trait provides a generalized interface for making basic HTTP
 /// requests.
 ///
-/// Implementations are expected to specify the `URL` constant and can optionally
-/// provide custom query parameters.
+/// Implementations are expected to specify the `URL` constant and can
+/// optionally provide custom query parameters.
 ///
 /// Types `T` and `U` are involved in deserialization and conversion.
 /// - `T` is the type that the HTTP response can be deserialized into.

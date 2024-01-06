@@ -2,28 +2,35 @@
 
 use clap::Parser;
 
+mod args;
+
 use args::{
     Command, Conditions, ConfigSubcommand, LocationSubcommand, UnitSubcommand,
     WeatherApiKeySubcommand,
 };
+use conditions::{cache::Cache, config::Config};
 
-use cache::Cache;
-use config::Config;
+#[tokio::main(flavor = "current_thread")]
+async fn main() {
+    env_logger::init();
 
-pub(crate) mod api;
-pub mod args;
-mod cache;
-mod conditions;
-mod config;
-pub mod icons;
-mod location;
-mod weather;
+    match run().await {
+        Ok(result) => println!("{result}"),
+        Err(err) => {
+            // for user
+            eprintln!("{err}");
+            // for development
+            log::error!("{:?}", err);
+        }
+    }
+}
 
 /// Entry point for running the application logic based on parsed CLI arguments.
 ///
 /// # Returns
 ///
-/// - `Ok(String)`: A success message or relevant output for the executed command
+/// - `Ok(String)`: A success message or relevant output for the executed
+///   command
 /// - `Err(eyre::Error)`: An error if any step in the execution fails.
 ///
 /// # Errors
@@ -44,9 +51,11 @@ pub async fn run() -> eyre::Result<String> {
         Command::Current { region } => {
             let (config, mut cache) = init().await?;
 
-            conditions::Conditions::new(config, region.clone())
+            let output = conditions::Conditions::new(config, region.clone())
                 .fetch(&mut cache)
-                .await?
+                .await?;
+
+            serde_json::to_string(&output)?
         }
         Command::Location(cmd) => match &cmd.command {
             LocationSubcommand::Set(input) => {
@@ -73,7 +82,7 @@ pub async fn run() -> eyre::Result<String> {
             WeatherApiKeySubcommand::Unset => Config::unset_weatherapi_token()?,
         },
         Command::Unit(cmd) => match &cmd.command {
-            UnitSubcommand::Set(unit) => Config::set_unit(unit.unit)?,
+            UnitSubcommand::Set(unit) => Config::set_unit(unit.unit.to())?,
             UnitSubcommand::View => {
                 format!("unit stored as: {}", Config::load()?.unit)
             }

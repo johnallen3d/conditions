@@ -11,6 +11,29 @@ pub struct Cache {
 }
 
 impl Cache {
+    /// Creates a new instance of the `Cache` struct.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - An optional `String` representing the path to the `SQLite`
+    /// database file. If `Some`, the provided path will be used. If `None`, the
+    /// `DATABASE_URL` environment variable will be used as the path. If the
+    /// `DATABASE_URL` environment variable is not set, an `eyre::Report` error
+    /// will be returned.
+    ///
+    /// # Returns
+    ///
+    /// Returns a `Result` containing the newly created `Cache` instance on
+    /// success, or an `eyre::Report` error on failure.
+    ///
+    /// # Errors
+    ///
+    /// This function can return the following errors:
+    ///
+    /// * `eyre::Report` - If the `DATABASE_URL` environment variable is not set
+    /// and no `path` is provided.
+    /// * `sqlx::Error` - If there is an error connecting to the `SQLite`
+    /// database or executing the SQL query to create the `cache` table.
     pub async fn new(path: Option<String>) -> eyre::Result<Self> {
         let path = match path {
             Some(path) => path,
@@ -40,6 +63,31 @@ impl Cache {
         Ok(Self { connection })
     }
 
+    /// Caches the provided location.
+    ///
+    /// This function takes a mutable reference to `self` (the cache) and a
+    /// reference to a `Location` struct.
+    /// It inserts or updates the location in the cache table based on the
+    /// postal code.
+    ///
+    /// # Arguments
+    ///
+    /// * `location` - A reference to a `Location` struct containing the details
+    /// of the location to be inserted or updated.
+    ///
+    /// # Returns
+    ///
+    /// This function returns a `Result` indicating success or failure. If the
+    /// operation is successful, it returns `Ok(())`.
+    /// If an error occurs during the execution of the SQL query or the database
+    /// connection, it returns an `eyre::Result` with the error details.
+    ///
+    /// # Errors
+    ///
+    /// This function can raise an error if there is an issue with the SQL query
+    /// execution or the database connection.
+    /// The specific error type is `eyre::Result`, which provides a flexible way
+    /// to handle and propagate errors.
     pub async fn set(&mut self, location: &Location) -> eyre::Result<()> {
         let query = r"
             INSERT INTO cache (
@@ -73,6 +121,23 @@ impl Cache {
         Ok(())
     }
 
+    /// Retrieves a location from the cache based on the provided postal code.
+    ///
+    /// # Arguments
+    ///
+    /// * `postal_code` - A string representing the postal code of the location
+    /// to retrieve.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<Option<Location>, eyre::Report>` - A result that contains an
+    /// optional `Location` if found in the cache, or an `eyre::Report` if an
+    /// error occurred.
+    ///
+    /// # Errors
+    ///
+    /// This function can return an `eyre::Report` if there was an error
+    /// executing the database query or fetching the location from the cache.
     pub async fn get(
         &mut self,
         postal_code: &str,
