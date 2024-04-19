@@ -14,7 +14,7 @@ license = { workspace = true }
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-confy = "0.5.1"
+confy = "0.6.1"
 eyre = { workspace = true }
 lazy_static = "1.4.0"
 rustls = "0.22.4"
