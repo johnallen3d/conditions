@@ -12,11 +12,6 @@ pub struct CurrentConditions {
     pub icon: String,
 }
 
-pub trait Provider {
-    fn current(&self) -> eyre::Result<CurrentConditions>;
-    fn query_pairs(&self) -> Vec<(&str, &str)>;
-}
-
 #[derive(Clone, Debug)]
 pub enum Source {
     WeatherAPI,
